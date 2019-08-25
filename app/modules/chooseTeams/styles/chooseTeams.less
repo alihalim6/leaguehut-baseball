@@ -1,0 +1,208 @@
+@inner-infield-top: 273px;
+@middle-reliever-top: 545px;
+@center-left: 311px;
+@corner-infield-top: 379px;
+@corner-outfielder-top: 174px;
+@bottom-top: 646px;
+
+.play-ball-button {
+	background-color: #0a4f6f;
+    color: #ffffff;
+    font-size: 25px;
+    font-family: sans-serif;
+    border-radius: 5px;
+    cursor: pointer;
+    position: absolute;
+    margin-left: 26px;
+    padding: 6px;
+}
+
+.choose-teams-carousel {
+	width: 850px;
+    margin: 0 auto;
+    padding: 0px;
+    text-align: center;
+    top: 84px;
+
+	.slick-dots {
+		bottom: 0px !important;
+	}
+
+	.team-slide {
+		height: 767px;
+		position: relative;
+		background: url('../img/baseball_field.png') no-repeat center; 
+    	background-size: 100% 90%;
+    	cursor: grab;
+
+    	.team-name {
+    		font-size: 64px;
+    		letter-spacing: 12px;
+    		margin-top: 0px;
+    	}
+
+    	.choose-team-button {
+		    position: absolute;
+		    top: 12px;
+		    right: 20px;
+		    font-size: 14px;
+		    background-color: #22c402;
+		    font-family: sans-serif;
+		    color: #ffffff;
+		    height: 48px;
+		    width: 72px;
+		    letter-spacing: normal;
+		    text-shadow: none;
+		    border-radius: 5px;
+		    cursor: pointer;
+    	}
+
+    	.disable-choose-team {
+    		background-color: #444444;
+    		color: #999999;
+    		cursor: not-allowed;
+    	}
+
+	    .toggle-bullpen {
+	        font-family: sans-serif;
+	    	position: absolute;
+	    	top: 515px;
+	    	cursor: pointer;
+	    }
+
+	    .toggle-bullpen-chevron > svg{
+			height: 20px;
+			position: absolute;
+			top: 0px;
+			left: -230px;
+		}
+
+		.player-on-field {
+			position: absolute;
+		    border-radius: 5px;
+		    height: 72px;
+		    width: 223px;
+		    text-align: right;
+		    font-family: sans-serif;
+		    padding: 0px 7px 0px 0px;
+		    background-color: #FFFFFF;
+		    box-shadow: 1px 2px 0px 0px lightgrey;
+		    cursor: pointer;
+
+		    .choose-teams-player-cap {
+		    	position: absolute;
+				z-index: 2;
+				height: 41px;
+				width: 45px;
+		        top: -4px;
+			    left: 24px;
+		    }
+
+		    .choose-teams-player-headshot {
+		    	position: absolute;
+			    //height: 90px;
+			    //width: 88px;
+			    top: -18px;
+			    left: 1px;
+		    }
+
+		    .choose-teams-player-headshot > svg{
+				height: 90px;
+				width: 90px;
+			}
+
+			.choose-teams-player-name {
+				height: 20px;
+			    width: 83%;
+			    position: absolute;
+			    left: 0px;
+			    border-radius: 5px 0px 5px 0px;
+			    font-size: 14px;
+			    font-weight: 600;
+			    color: #FFFFFF;
+			    padding: 2px 6px 0px 0px;
+			}
+
+		    .player-rating-container {
+		    	margin-top: 6px;
+
+			    .player-rating {
+			    	font-size: 12px;
+	    			padding: 15px 10px 2px 80px;
+	    			text-align: left;
+			    }
+
+			    .player-rating-bar {
+				    height: 10px;
+				    position: absolute;
+				    top: 41px;
+				    left: 123px;
+				    border-radius: 2px;		    
+			    }
+		    }
+		}
+
+		//***PLAYER POSITIONING***
+
+		.starting-pitcher {
+			top: 415px;
+    		left: @center-left;
+		}
+
+		.middle-reliever {
+			top: @middle-reliever-top;
+    		left: 0px;
+		}
+
+		.closer {
+			top: @bottom-top;
+    		left: 0px;
+		}
+
+		.catcher {
+			top: @bottom-top;
+    		left: @center-left;
+		}
+
+		.first-baseman {
+			top: @corner-infield-top;
+    		left: 569px;
+		}
+
+		.second-baseman {
+			top: @inner-infield-top;
+    		left: 460px;
+		}
+
+		.third-baseman {
+			top: @corner-infield-top;
+    		left: 50px;
+		}
+
+		.shortstop {
+			top: @inner-infield-top;
+    		left: 166px;
+		}
+
+		.left-fielder {
+		    top: @corner-outfielder-top;
+		    left: 70px;
+		}
+
+		.center-fielder {
+		    top: 104px;
+		    left: @center-left;
+		}
+
+		.right-fielder {
+		    top: @corner-outfielder-top;
+		    left: 553px;
+		}
+
+		//***END PLAYER POSITIONING***
+
+		.player-hidden {
+			display: none;
+		}
+	}
+}

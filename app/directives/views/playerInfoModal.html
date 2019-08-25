@@ -1,0 +1,26 @@
+<div class="player-info-modal" ng-class="{'wide-modal': $ctrl.playerInfo.isPitcher}" id="playerInfoModal">
+    <svg-icon svg-url="'x_icon'" class="player-info-modal-x-icon" ng-click="$ctrl.closePlayerInfoModal()"></svg-icon>
+ 	<img ng-src="{{'img/team_cap_' + $ctrl.playerInfo.teamId + '.png'}}" class="player-cap">
+	<svg-icon icon-source="'player_head_' + $ctrl.playerInfo.playerId" class="player-headshot" id="playerInfoHeadshot"></svg-icon>
+	<div class="player-name secondary-color-background-{{$ctrl.playerInfo.teamId}}">{{$ctrl.playerInfo.playerName}}</div>
+	<div class="player-position">{{$ctrl.playerInfo.position}}</div>
+	
+	<div class="pitcher-arsenal-percentages" ng-if="$ctrl.playerInfo.isPitcher">
+		% Thrown
+
+		<div class="pitch-percentage fastball-percentage">{{$ctrl.playerInfo.fastballPercentage}}%</div>
+		<div class="pitch-percentage index-2-percentage" ng-if="$ctrl.playerInfo.sliderPercentage">{{$ctrl.playerInfo.sliderPercentage}}%</div>
+		<div class="pitch-percentage index-{{$ctrl.playerInfo.curveballPercentageIndex}}-percentage" ng-if="$ctrl.playerInfo.curveballPercentage">{{$ctrl.playerInfo.curveballPercentage}}%</div>
+		<div class="pitch-percentage index-{{$ctrl.playerInfo.changeupPercentageIndex}}-percentage" ng-if="$ctrl.playerInfo.changeupPercentage">{{$ctrl.playerInfo.changeupPercentage}}%</div>
+	</div>
+
+	<div class="rating-list push-list-down">
+		<div class="ratings" ng-class="{'pitcher-ratings': $ctrl.playerInfo.isPitcher}">Rating</div>
+		<div class="player-rating-container" ng-class="{'pitcher-rating-container': $ctrl.playerInfo.isPitcher}" 
+			ng-repeat="skill in $ctrl.playerInfo.skillsList" 
+			ng-if="!$ctrl.playerInfo.hide[skill]">
+			<div class="player-rating">{{skill}}</div>
+			<div class="player-rating-bar" ng-style="$ctrl.determineBarDisplay($ctrl.playerInfo.teamId, $ctrl.playerInfo.playerId, skill)"></div>
+		</div>
+	</div>
+</div>

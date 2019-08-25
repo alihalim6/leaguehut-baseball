@@ -1,0 +1,79 @@
+<game-play 
+	start-game="gameInProgress" 
+	game-in-progress="gameInProgress" 
+	game-teams="gameTeams" 
+	show-player-info="showPlayerInfo"
+	close-player-info-modal="$ctrl.closePlayerInfoModal"
+	determine-bar-display="$ctrl.determineBarDisplay"
+	player-info="$ctrl.playerInfo">
+</game-play>
+
+<div ng-hide="gameInProgress">
+	<player-info-modal class="player-info-modal-container" id="playerInfoChooseTeams"></player-info-modal>
+
+	<div class="app-welcome">
+	 	Welcome to <span class="emphasize-bold">LeagueHut Baseball</span>! <br>
+	 	Swipe through the teams and set your matchup by selecting two of them.
+	</div>
+
+	<div class="chosen-teams" ng-show="chosenTeams.length">
+	 	<div class="team-{{chosenTeams[0].id}}-font team-name-small" ng-class="{'special-team-name-small': (chosenTeams[0].id === 8)}">
+	 		{{chosenTeams[0].name}}
+	 		<svg-icon svg-url="'x_icon'" class="chosen-teams-x-icon" ng-click="removeChosenTeam(0, chosenTeams[0].id)"></svg-icon>
+	 	</div>
+
+	 	<span class="choose-teams-vs"> vs. </span>
+
+	 	<div class="team-{{chosenTeams[1].id}}-font team-name-small" ng-show="chosenTeams[1]" ng-class="{'special-team-name-small': (chosenTeams[1].id === 8)}">
+	 		{{chosenTeams[1].name}}
+	 		<svg-icon svg-url="'x_icon'" class="chosen-teams-x-icon" ng-click="removeChosenTeam(1, chosenTeams[1].id)"></svg-icon>
+	 	</div>
+
+	 	<button ng-show="(chosenTeams.length === 2)" class="play-ball-button" ng-click="startGame()">Play Ball!</button>
+	 	<div class="divider-line"></div>
+	</div>
+
+	 <ul class="choose-teams-carousel">
+		<li class="slide team-slide" ng-repeat="team in teams" ng-init="$slideIndex = $index">
+			<h1 class="team-name team-{{team.id}}-font">
+				{{team.name}}
+
+				<button ng-disabled="teamChosen[team.id]" ng-click="chooseTeam(team.id, team.name)" class="choose-team-button" ng-class="{'disable-choose-team': teamChosen[team.id]}">Select Team</button>
+			</h1>
+
+			<div class="player-on-field" ng-repeat="player in team.players"
+				ng-click="showPlayerInfo(team, player.id)"
+				ng-class="{'starting-pitcher': player.isStartingPitcher,
+						   'middle-reliever': player.isMiddleReliever,
+						   'closer': player.isCloser,
+						   'catcher': (player.position === 'C'),
+						   'first-baseman': (player.position === '1B'),
+						   'second-baseman': (player.position === '2B'),
+						   'shortstop': (player.position === 'SS'),
+						   'third-baseman': (player.position === '3B'),
+						   'left-fielder': (player.position === 'LF'),
+						   'center-fielder': (player.position === 'CF'),
+						   'right-fielder': (player.position === 'RF'),
+						   'player-hidden': (player.isMiddleReliever || player.isCloser) && (bullpenToggle === 'View')}">
+				
+				<img ng-src="{{'img/team_cap_' + team.id + '.png'}}" class="choose-teams-player-cap">
+				<svg-icon svg-url="'player_head_' + {{player.id}}" class="choose-teams-player-headshot"></svg-icon>
+				<div class="choose-teams-player-name secondary-color-background-{{team.id}}">{{player.fullName}}</div>
+				<div class="player-position">{{player.position}}</div>
+	 
+				<div class="player-rating-container">
+					<div class="player-rating">Rating</div>
+					<div class="player-rating-bar" ng-style="$ctrl.determineBarDisplay(team, player.id)">
+						<svg-icon svg-url="'info_icon'" class="player-rating-info-icon"></svg-icon>
+					</div>
+				</div>
+			</div>
+
+			<div class="toggle-bullpen" ng-click="toggleBullpen()">
+				{{bullpenToggle}} Bullpen 
+				<svg-icon svg-url="'down_chevron'" ng-show="bullpenToggle === 'View'" class="toggle-bullpen-chevron"></svg-icon>
+				<svg-icon svg-url="'up_chevron'" ng-show="bullpenToggle === 'Hide'" class="toggle-bullpen-chevron"></svg-icon>
+			</div>
+		</li>
+	</ul>
+</div>

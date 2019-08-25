@@ -1,0 +1,589 @@
+@current-pitcher-alignment: 583px;
+@current-batter-alignment: 500px;
+@silhouette-position: 471px;
+@pitcher-silhouette-background-size: 106px;
+@batter-silhouette-background-size: 198px;
+@small-player-cap-width: 16.5px;
+@current-batter-width: 250px;
+
+@strike-zone-ball-size: 12px;
+@called-ball-color: #ff0000;
+@called-strike-color: #00ff00;
+@swinging-strike-color: #000000;
+@put-into-play-color: #fec43b;
+@foul-color: #aaaaaa;
+@hit-by-pitch-color: #0000ff;
+
+.game-play {
+	min-width: 1400px;
+	max-width: 1600px;
+	margin: 0 auto;
+}
+
+.end-game-x-icon {
+	position: absolute;
+    top: 15px;
+    right: 20px;
+    cursor: pointer;
+}
+
+.table-styles {
+	border: 2px solid #444444;
+	border-collapse: collapse;
+	font-family: sans-serif;
+    color: #444444;
+    text-align: center;
+}
+
+.scoreboard {
+	.table-styles;
+    margin: 12px auto 0px;
+    font-size: 17px;
+
+    td, th {
+    	padding: 5px 4px;
+    	border: 2px solid #444444;
+    	font-weight: 400;
+    }
+
+    .highlight-cell {
+    	 background-color: #dddddd;
+    }
+}
+
+.current-game-status {
+	font-family: sans-serif;
+	font-size: 16px;
+	text-align: center;
+	background-color: #eeeeee;
+	margin: 23px 0px;
+    height: 54px;
+    position: relative;
+    border-radius: 5px;
+
+    .current-inning {
+    	display: inline-block;
+    	padding-top: 19px;
+    	color: #0a4f6f;
+    	font-weight: 600;
+    }
+
+	.current-outs {
+		height: 12px;
+	    margin-left: 76px;
+	}
+
+	.current-bases {
+		height: 27px;
+    	margin-left: 16px;
+    	position: absolute;
+    	top: 12px;
+	}
+}
+
+.current-at-bat {
+	position: relative;
+	height: 0px;
+
+	.current-player {
+		position: absolute;
+	    border-radius: 5px;
+	    height: 72px;
+	    width: 200px;
+	    text-align: right;
+	    font-family: sans-serif;
+	    padding: 0px 7px 0px 70px;
+	    background-color: #FFFFFF;
+	    box-shadow: 1px 1px 4px 3px lightgrey;
+	    cursor: pointer;
+
+		.at-bat-player-cap {
+			position: absolute;
+			z-index: 2;
+			height: 41px;
+			width: 45px;
+	        top: -4px;
+		    left: 24px;
+		}
+
+		.at-bat-player-headshot {
+	    	position: absolute;
+		    top: -18px;
+		    left: 1px;
+	    }
+
+	    .at-bat-player-headshot > svg{
+			height: 90px;
+			width: 90px;
+		}
+
+		.at-bat-player-name {
+			height: 20px;
+		    width: 81%;
+		    position: absolute;
+		    left: 0px;
+		    border-radius: 5px 0px 5px 0px;
+		    font-size: 14px;
+		    font-weight: 600;
+		    color: #FFFFFF;
+		    padding: 2px 6px 0px 0px;
+		}
+
+		.game-stats {
+			position: absolute;
+		    top: 33px;
+		    left: 80px;
+		    font-size: 11.5px;
+		    color: #666666;
+
+		    .game-stat {
+		    	text-align: center;
+		    	display: inline-block;
+    			margin-right: 14px;
+		    }
+		}
+
+		.batter-game-stats {
+			margin: 22px auto 0px;
+    		width: max-content;
+    		position: unset;
+		}
+	}
+
+	.current-pitcher {
+		right: @current-pitcher-alignment;
+	}
+
+	.current-batter {
+		top: 418px;
+		left: @current-batter-alignment;
+		width: @current-batter-width;
+
+		.game-stats {
+		    top: 39px;
+		}
+	}
+
+	.pitcher-left-aligned {
+		left: @current-pitcher-alignment;
+		right: auto;
+	}
+
+	.batter-right-aligned {
+		left: auto;
+		right: @current-batter-alignment;
+	}
+
+	.pitcher-silhouette { 
+	    width: 200px;
+	    height: 250px;
+	    position: absolute;
+	    top: -41px;
+	}
+
+	.batter-silhouette { 
+	    width: 200px;
+	    height: 250px;
+	    position: absolute;
+	    top: 262px;
+	}
+
+	.R-handed-pitcher-silhouette {
+		right: @silhouette-position;
+		background: url('../img/R-pitcher-silhouette.png') no-repeat center;
+		background-size: @pitcher-silhouette-background-size;
+	}
+
+	.L-handed-pitcher-silhouette {
+		left: @silhouette-position;
+		background: url('../img/L-pitcher-silhouette.png') no-repeat center;
+		background-size: @pitcher-silhouette-background-size;
+	}
+
+	.R-handed-batter-silhouette {
+		left: @silhouette-position;
+		background: url('../img/R-batter-silhouette.png') no-repeat center;
+		background-size: @batter-silhouette-background-size;
+	}
+
+	.L-handed-batter-silhouette {
+		right: @silhouette-position;
+		background: url('../img/L-batter-silhouette.png') no-repeat center;
+		background-size: @batter-silhouette-background-size;
+	}
+
+	.strike-zone-container {
+		width: 339px;
+	    height: 315px;
+	    position: relative;
+	    top: 86px;
+	    margin: 0 auto;
+	    border: 2px solid #444444;
+	    background-color: rgba(255, 255, 255, 0.5);
+	    z-index: 1;
+	    font-family: sans-serif;
+	    font-size: 12px;
+
+	    .pitch-resulting-count {
+	    	margin: 8px auto 0px;
+    		width: fit-content;
+    		font-size: 14px;
+    		text-transform: uppercase;
+	    }
+
+	    #pitchThrown {
+	    	display: none;
+	    	opacity: 0;
+	    	-webkit-animation: show-pitch-thrown 2s linear;
+	    	animation: show-pitch-thrown 2s linear;
+	    }
+
+	    @keyframes show-pitch-thrown {
+	    	50% {
+	    		opacity: 1;
+	    	}
+
+	    	100% {
+	    		opacity: 0;
+	    	}
+	    }
+
+	    .strike-zone {
+	    	width: 140px;
+		    height: 160px;
+		    margin: 40px auto 47px;
+		    background-color: rgba(0, 0, 0, 0.01);
+		    border: 2px solid #bbbbbb;
+	    }
+
+	    .legend-label {
+	    	display: inline-block;  
+		    position: relative;
+		    top: -3px;
+		    font-size: 10px;
+	    }
+
+	    .ball {
+	    	width: @strike-zone-ball-size;
+		    height: @strike-zone-ball-size;
+		    border-radius: @strike-zone-ball-size;
+		    background-color: #ffffff;
+		    border: 2px solid;
+		    margin: 0px 5px 0px 10px;
+		    display: inline-block;
+	    }
+
+	    .pitch-thrown-ball {
+	    	.ball;
+	    	font-size: 10px;
+   		 	text-align: center;
+	    	position: absolute;
+	    	display: none;
+	    	-webkit-animation-duration: 0.5s;
+	    	animation-duration: 0.5s;
+	    	-webkit-animation-timing-function: ease-in;
+	    	animation-timing-function: ease-in;
+	    }
+
+	    .legend-top-row {
+	    	margin-bottom: 3px;    
+	    }
+
+	    .called-ball {
+	    	border-color: @called-ball-color;
+	    }
+
+	    @keyframes animate-called-ball {
+	    	from {border-color: #ffffff;}
+	    	to {border-color: @called-ball-color;}
+	    }
+
+	    .called-strike {
+	    	border-color: @called-strike-color;
+	    }
+
+	    @keyframes animate-called-strike {
+	    	from {border-color: #ffffff;}
+	    	to {border-color: @called-strike-color;}
+	    }
+
+	    .swinging-strike {
+	    	border-color: @swinging-strike-color;
+	    	border-style: dashed;
+	    }
+
+	    @keyframes animate-swinging-strike {
+	    	from {border-color: #ffffff;}
+	    	to {border-color: @swinging-strike-color;}
+	    }
+
+	    .put-into-play {
+	    	border-color: @put-into-play-color;
+	    	margin-left: 41px;
+	    }
+
+	    @keyframes animate-put-into-play {
+	    	from {border-color: #ffffff;}
+	    	to {border-color: @put-into-play-color;}
+	    }
+
+	    .foul {
+	    	border-color: @foul-color;
+	    }
+
+	    @keyframes animate-foul {
+	    	from {border-color: #ffffff;}
+	    	to {border-color: @foul-color;}
+	    }
+
+	    .hit-by-pitch {
+	    	border-color: @hit-by-pitch-color;
+	    }
+
+	    @keyframes animate-hit-by-pitch {
+	    	from {border-color: #ffffff;}
+	    	to {border-color: @hit-by-pitch-color;}
+	    }
+	}
+}
+
+.player-box-scores {
+	display: inline-block;
+	text-align: center;
+	position: relative;
+
+	.box-score-player-cap {
+		position: relative;
+		z-index: 2;
+		height: 15px;
+		width: @small-player-cap-width;
+        top: -5.9px;
+	    left: 25px;
+    }
+
+    .box-score-player-headshot > svg{
+		height: 33px;
+		width: 33px;
+	}
+
+	.box-score-player-headshot > svg:nth-child(2){
+		display: none
+	}
+}
+
+.player-box-score {
+	.table-styles;
+	margin-top: 54px;
+	margin-left: 12px;
+	margin-bottom: 10px;
+	font-size: 14px;
+	padding-right: 12px;
+	border-collapse: unset;
+	width: 100%;
+
+	.player-name {
+		text-align: left;
+		padding: 0px;
+		min-width: 113px;
+		cursor: pointer;
+
+		.player-profile {
+			display: flex;
+			align-items: center;
+
+			.name {
+		        text-decoration: underline;
+			}
+		}
+	}
+
+	.inactive-player {
+		color: #eeeeee;
+	}
+
+	.box-score-player-position-handedness {
+		position: absolute;
+	    font-size: 10px;
+	    margin: 1px 0px 0px 2px;
+	}
+
+	td, th {
+    	padding: 3px 4px;
+    }
+
+    td {
+    	border-bottom: 1px solid #eeeeee;
+    }
+
+    .current-player-at-bat {
+    	background-color: #eeeeee;
+    }
+
+    .team-totals {
+    	font-size: 10px;
+    	padding-top: 5px;
+    }
+}
+
+.pitcher-box-score {
+	margin-top: 5px;
+	position: absolute;
+}
+
+.play-by-play-container {
+	margin-top: 40px;
+	font-family: sans-serif;
+
+	.header {
+		text-align: center;
+    	color: #444444;
+    	margin-bottom: 14px;
+	}
+	.innings {
+		text-align: center;
+    	color: #0a4f6f;
+    	font-weight: 600;
+    	cursor: pointer;
+
+    	.inning {
+    		display: inline;
+    		margin: 0px 18px;
+    	}
+	}
+
+	.currently-selected-inning {
+		text-decoration: underline;
+	}
+
+	.plays {
+		margin: 5px 12px 20px;
+		border: 2px solid #cccccc;
+		border-radius: 5px;
+		max-height: 215px;
+    	overflow: scroll;
+
+		.play {
+		    font-size: 12px;
+		    padding-top: 20px;
+		    padding-bottom: 15px;
+		    width: 100%;
+		    margin: 13px 0px 10px 0px;
+    		border-bottom: 1px solid #cccccc;
+
+    		.bases-before-play {
+				height: 22px;
+				margin: 0px 10px 0px 17px;
+			}
+
+			.outs-before-play {
+				height: 10px;
+				padding-top: 7px;
+				margin-left: 10px;
+			}
+
+    		.play-spacing {
+    			margin-left: 17px;
+    		}
+
+    		.play-info-container {
+    			display: inline-flex;
+			    border-right: 1px solid #cccccc;
+			    min-width: 443px;
+			    height: 25px;
+			    margin-bottom: 10px;
+
+			    .play-padding {
+			     	padding-top: 5px;
+			    }
+
+			    .play-pitch-type {
+			    	text-transform: uppercase;
+			    	display: inline;
+			    }
+
+	    		.play-by-play-player {
+			     	text-transform: uppercase;
+			     	text-align: center;
+					font-size: 10px;
+					position: relative;
+					min-width: 100px;
+
+					.play-by-play-player-cap {
+						position: relative;
+						z-index: 2;
+						height: 15px;
+						width: @small-player-cap-width;
+				        top: -16px;
+					    left: 0.27%;
+					}
+
+					.play-by-play-player-headshot {
+						position: absolute;
+				    	top: -21.5px;
+				    	left: 50%;
+				    	margin-left: -16.5px;
+					}
+
+					.play-by-play-player-headshot > svg {
+						height: 33px;
+						width: 33px;
+					}
+
+					.play-by-play-player-headshot > svg:nth-child(2){
+						display: none
+					}
+				}
+			}
+
+			.two-play-calls-present {
+				height: auto;
+			    margin-bottom: -2px;
+				margin-top: 5px;
+			}
+
+			.move-play-call-up {
+				top: -9px;
+			}
+
+			.play-call-announcement {
+				margin-bottom: 15px;
+				left: 640px;
+			}
+
+			.end-full-inning {
+				left: 648px;
+			}
+
+			.game-over-call {
+				left: 682px;
+			}
+
+			.play-call {
+		 		position: relative;
+   				font-size: 14px;
+			}
+
+			.play-call-part-two {
+				display: block;
+				left: 447px;
+				margin-right: 500px;
+				line-height: 24px;
+				.move-play-call-up;
+			}
+		}
+
+		.last-play {
+			border: none;
+			margin-bottom: 0px;
+		}
+
+		.play > div {
+			display: inline-block;
+		}
+	}
+}
+
+.right-team {
+	float: right;
+	margin-right: 24px;
+}

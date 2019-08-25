@@ -1,0 +1,210 @@
+<div ng-if="$ctrl.gameInProgress" class="game-play">
+	<svg-icon svg-url="'x_icon'" class="end-game-x-icon " ng-click="$ctrl.endGame()"></svg-icon>
+	<player-info-modal class="player-info-modal-container" id="playerInfoGamePlay"></player-info-modal>
+
+	<!-- SCOREBOARD -->
+	<table class="scoreboard">
+		<thead>
+			<tr>
+				<th><!-- team name column --></th>
+				<th ng-repeat="(key, value) in $ctrl.gameTeams[0].inningScores">{{key}}</th>
+				<th class="emphasize-boldest highlight-cell">R</th>
+				<th class="emphasize-boldest highlight-cell">H</th>
+				<th class="emphasize-boldest highlight-cell">E</th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr>
+				<td class="emphasize-boldest">{{::$ctrl.gameTeams[0].name}}</td>
+				<td ng-repeat="(key, value) in $ctrl.gameTeams[0].inningScores">{{value}}</td>
+				<td>{{$ctrl.gameTeams[0].battingTotals.totalRuns}}</td>
+				<td>{{$ctrl.gameTeams[0].battingTotals.totalHits}}</td>
+				<td>{{$ctrl.gameTeams[0].totalErrors}}</td>
+			</tr>
+
+			<tr>
+				<td class="emphasize-boldest">{{::$ctrl.gameTeams[1].name}}</td>
+				<td ng-repeat="(key, value) in $ctrl.gameTeams[1].inningScores">{{value}}</td>
+				<td>{{$ctrl.gameTeams[1].battingTotals.totalRuns}}</td>
+				<td>{{$ctrl.gameTeams[1].battingTotals.totalHits}}</td>
+				<td>{{$ctrl.gameTeams[1].totalErrors}}</td>
+			</tr>
+
+			<tr>
+				<!-- <td align="center" colspan="13">{{inningForDisplay}}</td> -->
+			</tr>
+		</tbody>
+	</table>
+
+	<!-- CURRENT INNING INFO -->
+	<div class="current-game-status">
+		<div class="current-inning">{{$ctrl.currentInningForDisplay}}</div>
+		<img ng-src="{{'img/bases_' + $ctrl.currentBases.code + '.png'}}" class="current-bases">
+		<img ng-src="{{'img/outs_' + $ctrl.currentOuts + '.png'}}" class="current-outs">
+	</div>
+
+	<!-- CURRENT AT BAT -->
+	<div class="current-at-bat">
+		<div class="pitcher-silhouette {{$ctrl.pitcher.handedness}}-handed-pitcher-silhouette"></div>
+		<div class="batter-silhouette {{$ctrl.batter.handedness}}-handed-batter-silhouette"></div>
+
+		<!-- PITCHER -->
+		<div class="current-player current-pitcher" ng-class="{'pitcher-left-aligned': $ctrl.pitcher.handedness === 'L'}" ng-click="$ctrl.handleShowPlayerInfo($ctrl.defense, $ctrl.pitcher.id)">
+			<img ng-src="{{'img/team_cap_' + $ctrl.defense.id + '.png'}}" class="at-bat-player-cap">
+			<svg-icon icon-source="'player_head_' + $ctrl.pitcher.id" class="at-bat-player-headshot"></svg-icon>
+			<div class="at-bat-player-name secondary-color-background-{{$ctrl.defense.id}}">{{$ctrl.pitcher.fullName}}</div>
+			<div class="player-position">{{$ctrl.pitcher.handedness}}H{{$ctrl.pitcher.position}}</div>
+			<div class="game-stats">
+				<div ng-repeat="stat in $ctrl.pitcherGameStats" class="game-stat" ng-class="{'no-margin': $last}">
+					<div>{{stat.label}}</div><div>{{$ctrl.pitcher[stat.id]}}</div>
+				</div>
+			</div>
+		</div>
+
+		<button style="height: 50px; width: 50px; background-color: black; position: absolute; top: -76px; left: 474px; color: #fff" ng-click="$ctrl.throwPitch()">throw pitch</button>
+
+		<!-- BATTER -->
+		<div class="current-player current-batter" ng-class="{'batter-right-aligned': $ctrl.batter.handedness === 'L'}" ng-click="$ctrl.handleShowPlayerInfo($ctrl.offense, $ctrl.batter.id)">
+			<img ng-src="{{'img/team_cap_' + $ctrl.offense.id + '.png'}}" class="at-bat-player-cap">
+			<svg-icon icon-source="'player_head_' + $ctrl.batter.id" class="at-bat-player-headshot"></svg-icon>
+			<div class="at-bat-player-name secondary-color-background-{{$ctrl.offense.id}}">{{$ctrl.batter.fullName}}</div>
+			<div class="player-position">{{$ctrl.batter.position}}</div>
+			<div class="game-stats batter-game-stats">
+				<div class="italic-text" ng-if="!$ctrl.batter.plateAppearances">FIRST PLATE APPEARANCE</div>
+				<div ng-if="$ctrl.batter.plateAppearances">{{$ctrl.batter.gameStatLine}}</div>
+			</div>
+		</div>
+
+		<!-- STRIKE ZONE -->
+		<div class="strike-zone-container">
+			<div class="pitch-resulting-count">
+				<div id="currentCount">{{$ctrl.count}}</div>
+				<div id="pitchThrown">{{$ctrl.pitchThrown}}</div>
+			</div>
+			<div class="strike-zone" id="strikeZone">
+			</div>
+			<div class="legend-top-row">
+				<div class="ball called-ball"></div><div class="legend-label">CALLED BALL</div>
+				<div class="ball called-strike"></div><div class="legend-label">CALLED STRIKE</div>
+				<div class="ball swinging-strike"></div><div class="legend-label">SWINGING STRIKE</div>
+			</div>
+			<div class="ball put-into-play"></div><div class="legend-label">PUT INTO PLAY</div>
+			<div class="ball foul"></div><div class="legend-label">FOUL</div>
+			<div class="ball hit-by-pitch"></div><div class="legend-label">HIT BY PITCH</div>
+		</div>
+	</div>
+
+	<!-- PLAYER BOX SCORES -->
+	<div ng-repeat="team in $ctrl.gameTeams" class="player-box-scores" ng-class="{'right-team': !$first}">
+		<div class="team-{{team.id}}-font box-score-team-name team-{{team.id}}-box-score-name-margin" 
+			ng-class="{'special-team-name-small': (team.id === 8), 'special-team-name-no-margin-top': (team.id === 1 || team.id === 7)}">
+	 		{{team.name}}
+	 	</div>
+
+		<table class="player-box-score">
+			<thead>
+				<tr>
+					<th ng-repeat="category in $ctrl.playerBattingCategories">{{::category}}</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr ng-repeat="player in team.players" 
+					ng-class="{'inactive-player': player.inactive, 
+						'current-player-at-bat': !gameIsOver && ($ctrl.currentOuts < 3) && ($ctrl.offense.id === team.id) && ($ctrl.batter.id === player.id)}" 
+					ng-hide="player.inactive && !player.plateAppearances">
+					<td class="player-name" ng-click="$ctrl.handleShowPlayerInfo(team, player.id)">
+						<div class="player-profile">
+							<div class="box-score-player-position-handedness">{{::player.position}}</div>
+							<img ng-src="{{'img/team_cap_' + team.id + '.png'}}" class="box-score-player-cap">
+							<svg-icon icon-source="'player_head_' + player.id" class="box-score-player-headshot"></svg-icon>
+						
+							<div class="name">{{::player.lastName}}</div>
+						</div>
+					</td>
+					<td>{{player.atBats}}</td>
+					<td>{{player.runs}}</td>
+					<td>{{player.hits}}</td>
+					<td>{{player.totalBases}}</td>
+					<td>{{player.rbis}}</td>
+					<td>{{player.HR}}</td>
+					<td>{{player.walks}}</td>
+					<td>{{player.strikeOuts}}</td>
+					<td>{{player.lob}}</td>
+					<td>{{player.errors}}</td>
+				</tr>
+			</tbody>
+			<tfoot>
+				<tr>
+					<td ng-repeat="(key, value) in team.battingTotals" class="emphasize-bold" ng-class="{'team-totals': $first}">{{value}}</td>
+				</tr>
+			</tfoot>
+		</table>
+
+		<table class="player-box-score pitcher-box-score">
+			<thead>
+				<tr>
+					<th ng-repeat="category in $ctrl.pitchingCategories">{{::category}}</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr ng-repeat="player in team.players" ng-if="player.position === 'P'" ng-hide="player.inactive && !player.pitches" ng-class="{'inactive-player': player.inactive}">
+					<td class="player-name" ng-click="$ctrl.handleShowPlayerInfo(team, player.id)">
+						<div class="player-profile"> 
+							<div class="box-score-player-position-handedness">{{::player.handedness}}HP</div>
+							<img ng-src="{{'img/team_cap_' + team.id + '.png'}}" class="box-score-player-cap">
+							<svg-icon icon-source="'player_head_' + player.id" class="box-score-player-headshot"></svg-icon>
+						
+							<div class="name">{{::player.lastName}}</div>
+						</div>
+					</td>
+					<td>{{player.inningsPitched}}</td>
+					<td>{{player.hitsAllowed}}</td>
+					<td>{{player.runsAllowed}}</td>
+					<td>{{player.battersWalked}}</td>
+					<td>{{player.battersStruckOut}}</td>
+					<td>{{player.pitches}}</td>
+				</tr>
+			</tbody>
+		</table>
+	</div>
+
+	<!-- PLAY BY PLAY -->
+	<div class="play-by-play-container" id="playByPlayContainer" ng-show="$ctrl.playByPlay['1st']">
+		<div class="header">PLAY-BY-PLAY</div>
+		<div class="innings">
+			<div class="inning" 
+				ng-click="$ctrl.setCurrentPlayByPlayInning(key)"
+				ng-class="{'currently-selected-inning': (key === $ctrl.currentPlayByPlaySelected)}" ng-repeat="(key, value) in $ctrl.playByPlay">
+				<span>{{key}}</span>
+			</div>
+		</div>
+
+		<div class="plays">
+			<div ng-repeat="play in $ctrl.playByPlay[$ctrl.currentPlayByPlaySelected]" class="play" ng-class="{'last-play': $last}">
+				<div class="play-info-container" ng-if="!play.announcement" ng-class="{'two-play-calls-present': play.playCallPartTwo}">
+					<div class="play-spacing play-padding">{{play.count}}</div>
+					<img ng-src="{{'img/bases_before_play_' + play.bases + '.png'}}" class="bases-before-play">
+					<img ng-src="{{'img/outs_before_play_' + play.outs + '.png'}}" class="outs-before-play">
+					<div class="play-by-play-player">
+						<img ng-src="{{'img/team_cap_' + play.pitcher.teamId + '.png'}}" class="play-by-play-player-cap">
+						<svg-icon icon-source="'player_head_' + play.pitcher.id" class="play-by-play-player-headshot"></svg-icon>
+						<div>{{play.pitcher.lastName}}</div>
+					</div>
+					<div class="play-padding">{{play.pitchVelocity}} mph <div class="play-pitch-type">{{play.pitchType}}</div></div>
+					<div class="play-by-play-player">
+						<img ng-src="{{'img/team_cap_' + play.batter.teamId + '.png'}}" class="play-by-play-player-cap">
+						<svg-icon icon-source="'player_head_' + play.batter.id" class="play-by-play-player-headshot"></svg-icon>
+						<div>{{play.batter.lastName}}</div>
+					</div>
+				</div>
+				<div class="play-spacing play-call" 
+					  ng-class="{'move-play-call-up': play.playCallPartTwo, 'play-call-announcement': play.announcement, 'end-full-inning': play.fullInningEnded, 'game-over-call': play.gameOver}">
+					{{play.playCall}}
+				</div>
+				<div class="play-spacing play-call play-call-part-two" ng-if="play.playCallPartTwo">
+					{{play.playCallPartTwo}}
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
