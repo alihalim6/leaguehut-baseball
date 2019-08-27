@@ -283,6 +283,13 @@
     right: 0px;
 }
 
+.team-stats-info-icon {
+	.player-rating-info-icon;
+	top: 57px;
+	left: 13px;
+	cursor: pointer;
+}
+
 .team-name-small {
 	font-size: 33px !important;
     display: inline;
@@ -309,6 +316,7 @@
 .player-info-modal-container {
 	display: none;
 	position: absolute;
+	left: 0px;
     height: 114vh;//long enough to cover the entire slide so that nothing is clickable when modal is showing
     width: 100%;
     z-index: 3;
@@ -449,6 +457,54 @@
 	    	margin-top: 48px;
 	    }
 	}
+
+	
+}
+
+.team-stats-modal-container {
+	.player-info-modal-container;
+
+	.team-stats-modal {
+		.player-info-modal;
+		margin: -13px auto;
+		width: 642px;
+		height: 706px;
+
+		.team-stats-modal-table {
+			width: 616px;
+			text-align: left;
+			margin-top: 10px;
+
+			th {
+				color: #ffffff;
+			}
+
+			td {
+		    	padding-left: 8px;
+		    	border-top: 1px solid #eeeeee;
+		    	border-right: 1px solid #eeeeee;
+		    }
+
+		    .team-stat {
+		    	display: inline-block;
+		    }
+
+		    .team-sub-stat {
+		    	padding-left: 30px;
+		    	background-color: #eeeeee;
+		    }
+
+		    .smaller-font {
+		    	font-size: 13px;
+		    }
+		}
+	}
+}
+
+.modal-title {
+	width: fit-content;
+    margin: 18px auto 0px;
+	color: #444444;
 }
 
 .wide-modal {

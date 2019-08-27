@@ -83,8 +83,8 @@ module.exports = function(module){
 		  		};
 
 		  		///////////////////////////////
-				$scope.gameTeams[0] = _.find($scope.teams, {id: 7});//1 - RH batter; 2-LH
-				$scope.gameTeams[1] = _.find($scope.teams, {id: 1});//9 - RH pitcher; 10-LH
+				$scope.gameTeams[0] = _.find($scope.teams, {id: 6});//1 - RH batter; 2-LH
+				$scope.gameTeams[1] = _.find($scope.teams, {id: 9});//9 - RH pitcher; 10-LH
 				$scope.gameInProgress = true;
 			});	
 		});
@@ -131,6 +131,14 @@ module.exports = function(module){
 
 		$scope.toggleBullpen = function(){
 			$scope.bullpenToggle = ($scope.bullpenToggle === appConstants.BULLPEN_INITIAL_TOGGLE) ? appConstants.BULLPEN_SECONDARY_TOGGLE : appConstants.BULLPEN_INITIAL_TOGGLE;
+		}
+
+		$scope.prevSlide = function(){
+			$('.choose-teams-carousel').slick('slickPrev');
+		}
+
+		$scope.nextSlide = function(){
+			$('.choose-teams-carousel').slick('slickNext');
 		}
 
 		$scope.chooseTeam = function(teamId, teamName){

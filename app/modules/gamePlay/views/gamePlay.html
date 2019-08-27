@@ -3,14 +3,17 @@
 	<player-info-modal class="player-info-modal-container" id="playerInfoGamePlay"></player-info-modal>
 
 	<!-- SCOREBOARD -->
-	<table class="scoreboard">
+	<table class="scoreboard" ng-click="$ctrl.showTeamStatsModal()">
 		<thead>
 			<tr>
 				<th><!-- team name column --></th>
-				<th ng-repeat="(key, value) in $ctrl.gameTeams[0].inningScores">{{key}}</th>
+				<th ng-repeat="(key, value) in $ctrl.gameTeams[0].inningScores">{{::key}}</th>
 				<th class="emphasize-boldest highlight-cell">R</th>
 				<th class="emphasize-boldest highlight-cell">H</th>
-				<th class="emphasize-boldest highlight-cell">E</th>
+				<th class="emphasize-boldest highlight-cell error-cell">
+					E
+					<svg-icon svg-url="'info_icon'" class="team-stats-info-icon" ng-click="$ctrl.showTeamStatsModal()"></svg-icon>
+				</th>
 			</tr>
 		</thead>
 		<tbody>
@@ -28,10 +31,6 @@
 				<td>{{$ctrl.gameTeams[1].battingTotals.totalRuns}}</td>
 				<td>{{$ctrl.gameTeams[1].battingTotals.totalHits}}</td>
 				<td>{{$ctrl.gameTeams[1].totalErrors}}</td>
-			</tr>
-
-			<tr>
-				<!-- <td align="center" colspan="13">{{inningForDisplay}}</td> -->
 			</tr>
 		</tbody>
 	</table>
@@ -94,11 +93,118 @@
 		</div>
 	</div>
 
+	<!-- TEAM STATS -->
+	<div class="team-stats-modal-container" id="teamStatsModal">
+		<div class="team-stats-modal">
+		    <svg-icon svg-url="'x_icon'" class="player-info-modal-x-icon" ng-click="$ctrl.closeTeamStatsModal()"></svg-icon>
+		    <!-- BATTING -->
+		    <h2 class="modal-title">Team Batting</h2>
+			<table class="player-box-score team-stats-modal-table">
+				<thead>
+					<tr>
+						<th><!-- stat label column --></th>
+						<th class="secondary-color-background-{{team.id}} game-summary-cell-background" ng-repeat="team in $ctrl.gameTeams">
+							{{::team.name}}
+						</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr ng-repeat="stat in $ctrl.teamBattingCategories">
+						<td class="emphasize-boldest">{{::stat.label}}</td>
+						<td>
+							<div class="team-stat" ng-if="!stat.displayDirectValue" ng-repeat="value in $ctrl.gameTeams[0].batting[stat.id] track by $index">
+								<span ng-if="!$first">, </span>{{value}}
+							</div>
+							<div ng-if="stat.displayDirectValue">
+								{{$ctrl.gameTeams[0].batting[stat.id]}}
+							</div>
+						</td>
+						<td>
+							<div class="team-stat" ng-if="!stat.displayDirectValue" ng-repeat="value in $ctrl.gameTeams[1].batting[stat.id] track by $index">
+								<span ng-if="!$first">, </span>{{value}}
+							</div>
+							<div ng-if="stat.displayDirectValue">
+								{{$ctrl.gameTeams[1].batting[stat.id]}}
+							</div>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+
+			<!-- PITCHING -->
+			<h2 class="modal-title">Team Pitching</h2>
+			<table class="player-box-score team-stats-modal-table">
+				<thead>
+					<tr>
+						<th><!-- stat label column --></th>
+						<!-- AWAY TEAM -->
+						<th class="secondary-color-background-{{$ctrl.gameTeams[0].id}} game-summary-cell-background">
+							{{::$ctrl.gameTeams[0].startingPitcher.lastName}}
+						</th>
+						<th class="secondary-color-background-{{$ctrl.gameTeams[0].id}} game-summary-cell-background" ng-if="$ctrl.gameTeams[0].middleReliever.pitches">
+							{{::$ctrl.gameTeams[0].middleReliever.lastName}}
+						</th>
+						<th class="secondary-color-background-{{$ctrl.gameTeams[0].id}} game-summary-cell-background" ng-if="$ctrl.gameTeams[0].closer.pitches">
+							{{::$ctrl.gameTeams[0].closer.lastName}}
+						</th>
+						<!-- HOME TEAM -->
+						<th class="secondary-color-background-{{$ctrl.gameTeams[1].id}} game-summary-cell-background">
+							{{::$ctrl.gameTeams[1].startingPitcher.lastName}}
+						</th>
+						<th class="secondary-color-background-{{$ctrl.gameTeams[1].id}} game-summary-cell-background" ng-if="$ctrl.gameTeams[1].middleReliever.pitches">
+							{{::$ctrl.gameTeams[1].middleReliever.lastName}}
+						</th>
+						<th class="secondary-color-background-{{$ctrl.gameTeams[1].id}} game-summary-cell-background" ng-if="$ctrl.gameTeams[1].closer.pitches">
+							{{::$ctrl.gameTeams[1].closer.lastName}}
+						</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr ng-repeat="stat in $ctrl.teamPitchingCategories track by $index">
+						<td class="emphasize-boldest smaller-font" ng-class="{'team-sub-stat': stat.subStat}">{{::stat.label}}</td>
+						<!-- AWAY TEAM -->
+						<td>
+							<div class="team-stat">
+								{{$ctrl.gameTeams[0].startingPitcher[stat.id]}}
+							</div>
+						</td>
+						<td ng-if="$ctrl.gameTeams[0].middleReliever.pitches">
+							<div class="team-stat">
+								{{$ctrl.gameTeams[0].middleReliever[stat.id]}}
+							</div>
+						</td>
+						<td ng-if="$ctrl.gameTeams[0].closer.pitches">
+							<div class="team-stat">
+								{{$ctrl.gameTeams[0].closer[stat.id]}}
+							</div>
+						</td>
+						<!-- HOME TEAM -->
+						<td>
+							<div class="team-stat">
+								{{$ctrl.gameTeams[1].startingPitcher[stat.id]}}
+							</div>
+						</td>
+						<td ng-if="$ctrl.gameTeams[1].middleReliever.pitches">
+							<div class="team-stat">
+								{{$ctrl.gameTeams[1].middleReliever[stat.id]}}
+							</div>
+						</td>
+						<td ng-if="$ctrl.gameTeams[1].closer.pitches">
+							<div class="team-stat">
+								{{$ctrl.gameTeams[1].closer[stat.id]}}
+							</div>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+	</div>
+
 	<!-- PLAYER BOX SCORES -->
 	<div ng-repeat="team in $ctrl.gameTeams" class="player-box-scores" ng-class="{'right-team': !$first}">
 		<div class="team-{{team.id}}-font box-score-team-name team-{{team.id}}-box-score-name-margin" 
 			ng-class="{'special-team-name-small': (team.id === 8), 'special-team-name-no-margin-top': (team.id === 1 || team.id === 7)}">
-	 		{{team.name}}
+	 		{{::team.name}}
 	 	</div>
 
 		<table class="player-box-score">
@@ -175,7 +281,7 @@
 			<div class="inning" 
 				ng-click="$ctrl.setCurrentPlayByPlayInning(key)"
 				ng-class="{'currently-selected-inning': (key === $ctrl.currentPlayByPlaySelected)}" ng-repeat="(key, value) in $ctrl.playByPlay">
-				<span>{{key}}</span>
+				<span>{{::key}}</span>
 			</div>
 		</div>
 

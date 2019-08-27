@@ -24,7 +24,16 @@ module.exports = function(module){
 		MAX_LEFT_CENTER: 176,
 
 		MIN_LEFT_CENTER_RIGHT: 177,
-		MAX_LEFT_CENTER_RIGHT: 227	
+		MAX_LEFT_CENTER_RIGHT: 227,
+
+		MIN_TOP_FOR_UP_MISCALLED_BALL: 48,
+		MAX_TOP_FOR_UP_MISCALLED_BALL: 76,
+		MIN_TOP_FOR_DOWN_MISCALLED_BALL: 196,
+		MAX_TOP_FOR_DOWN_MISCALLED_BALL: 226,
+		MIN_LEFT_FOR_RIGHT_MISCALLED_BALL: 196,
+		MAX_LEFT_FOR_RIGHT_MISCALLED_BALL: 231,
+		MIN_LEFT_FOR_LEFT_MISCALLED_BALL: 71,
+		MAX_LEFT_FOR_LEFT_MISCALLED_BALL: 106
 	};
 
 	module.constant('pitchConstants', {
@@ -96,6 +105,49 @@ module.exports = function(module){
 			SDI: 'down inside'
 		},
 
+		PITCH_ANIMATION_MOVEMENT : {
+			FB: {
+				vertical: {
+					min: 0,
+					max: 18
+				},
+				horizontal: {
+					min: 0,
+					max: 15
+				}
+			},
+			SL: {
+				vertical: {
+					min: 35,
+					max: 50
+				},
+				horizontal: {
+					min: 38,
+					max: 58
+				}
+			},
+			CB: {
+				vertical: {
+					min: 50,
+					max: 75
+				},
+				horizontal: {
+					min: 4,
+					max: 10
+				}
+			},
+			CU: {
+				vertical: {
+					min: 10,
+					max: 16
+				},
+				horizontal: {
+					min: 0,
+					max: 14
+				}
+			}
+		},
+
 		//average pitch in zone% for each count in zone and out;
 		//balls : [0 strikes, 1 strikes, ...]
 		COUNT_PITCH_PERCENTAGES : {
@@ -124,6 +176,37 @@ module.exports = function(module){
 				"3" : [68.6, 67.7, 63.3]
 			}
 		},
+
+		MISCALLED_BALL_REPOSITION : [
+			//UP
+			{
+				locations: ['RSUI', 'RSUM', 'RSUO', 'LSUI', 'LSUM', 'LSUO'],
+				repositionLimit: PITCH_ANIMATION_GLOBAL.MAX_TOP_FOR_UP_MISCALLED_BALL,
+				zoneLimit: PITCH_ANIMATION_GLOBAL.MIN_TOP_FOR_UP_MISCALLED_BALL,
+				isGreaterThanLimit: true
+			},
+			//DOWN
+			{
+				locations: ['RSDI', 'RSDM', 'RSDO', 'LSDI', 'LSDM', 'LSDO'],
+				repositionLimit: PITCH_ANIMATION_GLOBAL.MIN_TOP_FOR_DOWN_MISCALLED_BALL,
+				zoneLimit: PITCH_ANIMATION_GLOBAL.MAX_TOP_FOR_DOWN_MISCALLED_BALL
+			},
+			//R IN/L OUT
+			{
+				locations: ['RSCI', 'LSCO'],
+				repositionLimit: PITCH_ANIMATION_GLOBAL.MAX_LEFT_FOR_LEFT_MISCALLED_BALL,
+				zoneLimit: PITCH_ANIMATION_GLOBAL.MIN_LEFT_FOR_LEFT_MISCALLED_BALL,
+				repositionX: true,
+				isGreaterThanLimit: true
+			},
+			//R OUT/L IN
+			{
+				locations: ['RSCO', 'LSCI'],
+				repositionLimit: PITCH_ANIMATION_GLOBAL.MIN_LEFT_FOR_RIGHT_MISCALLED_BALL,
+				zoneLimit: PITCH_ANIMATION_GLOBAL.MAX_LEFT_FOR_RIGHT_MISCALLED_BALL,
+				repositionX: true
+			}
+		],
 
 		//locations are combination of batter handedness and pitch location
 		PITCH_ANIMATION : [

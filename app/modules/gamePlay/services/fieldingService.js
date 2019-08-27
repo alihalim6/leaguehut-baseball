@@ -316,10 +316,10 @@ module.exports = function(module){
 					delta *= (baseAdvancingToObj.runnerGoingBackToBase ? -1 : 1);
 
 					var projectedDistanceAtTimeBallReachesBase = (baseRunner.currentDistance + delta);
-					var distanceFromBase = (projectedDistanceAtTimeBallReachesBase - appConstants.GAME_PLAY.BASES[baseAdvancingToObj.baseRunnerIsAdvancingTo].distance);
+					var runnerDistanceFromBase = (projectedDistanceAtTimeBallReachesBase - appConstants.GAME_PLAY.BASES[baseAdvancingToObj.baseRunnerIsAdvancingTo].distance);
 
 					var playToBeMade = (baseAdvancingToObj.runnerGoingBackToBase ? 
-						(distanceFromBase > fieldingConstants.DIST_DIFF_FOR_PROJECTED_BASE_REACH) : (distanceFromBase < fieldingConstants.DIST_DIFF_FOR_PROJECTED_BASE_REACH));
+						(runnerDistanceFromBase > fieldingConstants.DIST_DIFF_FOR_PROJECTED_BASE_REACH) : (runnerDistanceFromBase < fieldingConstants.DIST_DIFF_FOR_PROJECTED_BASE_REACH));
 
 					if(batter){
 						fieldingResults.baseBatterAdvancedTo = appConstants.GAME_PLAY.BASES[baseAdvancingToObj.baseRunnerIsAdvancingTo].baseId;
@@ -335,14 +335,14 @@ module.exports = function(module){
 						potentialPlaysToBeMade.push({
 							base : baseAdvancingToObj.baseRunnerIsAdvancingTo,
 							timeToBase : baseAdvancingToObj.timeToBase,
-							outGuarantee: (baseAdvancingToObj.timeToBase + timeToBaseObj.fielderDistanceFromBase),
+							outGuarantee: (baseAdvancingToObj.timeToBase + timeToBaseObj.fielderDistanceFromBase + runnerDistanceFromBase),
 							outPriority: (outPriority + timeToBaseObj.fielderDistanceFromBase),
 							fielderDistanceFromBase: timeToBaseObj.fielderDistanceFromBase,
 							runnerGoingBackToBase : baseAdvancingToObj.runnerGoingBackToBase,
 							runnersProjectedRunningRate : baseRunner.projectedRunningRate,
 							runnersActualRunningRate : baseRunner.actualRunningRate,
 							runnersCurrentDistance : baseRunner.currentDistance,
-							runnerDistanceFromBaseAtTimeBallReaches : distanceFromBase,
+							runnerDistanceFromBaseAtTimeBallReaches : runnerDistanceFromBase,
 							cutOffMan : timeToBaseObj.cutOffMan,
 							throwToCutOffMan: timeToBaseObj.throwToCutOffMan,
 							manCoveringCutoffsBase : timeToBaseObj.manCoveringCutoffsBase,
@@ -414,8 +414,8 @@ module.exports = function(module){
 						delta *= (potentialPlay.runnerGoingBackToBase ? -1 : 1);
 
 						var projectedDistanceAtTimeBallReachesBase = (potentialPlay.runnersCurrentDistance + delta);
-						var distanceFromBase = (projectedDistanceAtTimeBallReachesBase - appConstants.GAME_PLAY.BASES[potentialPlay.base].distance);						
-						var playToBeMade = (potentialPlay.runnerGoingBackToBase ? (distanceFromBase > fieldingConstants.DIST_DIFF_FOR_PROJECTED_BASE_REACH) : (distanceFromBase < fieldingConstants.DIST_DIFF_FOR_PROJECTED_BASE_REACH));
+						var runnerDistanceFromBase = (projectedDistanceAtTimeBallReachesBase - appConstants.GAME_PLAY.BASES[potentialPlay.base].distance);						
+						var playToBeMade = (potentialPlay.runnerGoingBackToBase ? (runnerDistanceFromBase > fieldingConstants.DIST_DIFF_FOR_PROJECTED_BASE_REACH) : (runnerDistanceFromBase < fieldingConstants.DIST_DIFF_FOR_PROJECTED_BASE_REACH));
 
 						if(playToBeMade){
 							doublePlayPossible = true;
@@ -904,22 +904,28 @@ module.exports = function(module){
 
 				//determine who goes after ball
 				//in order of closest to where it is going/will land
-				_.each(playersFieldingBall, function(player){
-					var min = fieldingConstants.DEFENSE_POSITIONING_MOVE_MIN;
-					var max = fieldingConstants.DEFENSE_POSITIONING_MOVE_MAX;
+				var min = fieldingConstants.DEFENSE_POSITIONING_MOVE_MIN;
+				var max = fieldingConstants.DEFENSE_POSITIONING_MOVE_MAX;
 
+				_.each(playersFieldingBall, function(player){
 					//shimmy players' x/y if not C or P
 					if((player.position !== appConstants.GAME_PLAY.POSITIONS.CATCHER) && (player.position !== appConstants.GAME_PLAY.POSITIONS.PITCHER)){
 						var randomXPosition = __.getRandomIntInclusive(min, max);
 						var randomYPosition = __.getRandomIntInclusive(min, max);
+						var randomXMultiplier = 1;
+						var randomYMultiplier = -1;
 						
-						randomXPosition *= ((batter.handedness === appConstants.RIGHT) ? -1 : 1);
-						randomXPosition *= ((batter.handedness === appConstants.LEFT) ? 1 : -1);
-						randomYPosition *= ((batter.handedness === appConstants.RIGHT) && (player.fieldSide === appConstants.RIGHT)) ? 1 : -1;
-						randomYPosition *= ((batter.handedness === appConstants.LEFT) && (player.fieldSide === appConstants.LEFT)) ? 1 : -1;
+						//right handed batter
+						if(batter.handedness === appConstants.RIGHT){
+							randomXMultiplier = -1;
 
-						player.xOnPlay = (player.x + randomXPosition);
-						player.yOnPlay = (player.y + randomYPosition);
+							if(player.fieldSide === appConstants.RIGHT) randomYMultiplier = 1;
+						}
+						//fielder on left side vs left handed batter
+						else if(player.fieldSide === appConstants.LEFT) randomXMultiplier = 1;
+
+						player.xOnPlay = (player.x + (randomXPosition * randomXMultiplier));
+						player.yOnPlay = (player.y + (randomYPosition * randomYMultiplier));
 					}
 					else{
 						player.xOnPlay = player.x;

@@ -58,7 +58,8 @@ module.exports = function(module){
 			handleGIDP: handleGIDP,
 			updateOffenseAndDefense: updateOffenseAndDefense,
 			getNumberOfPitchersBroughtIn: getNumberOfPitchersBroughtIn,
-			handleError: handleError
+			handleError: handleError,
+			resetGame: resetGame
 		}
 
 		return api;
@@ -138,12 +139,21 @@ module.exports = function(module){
 
 			//get next active player
 			if(playerAtBat.inactive){
-				//if inactive player is last in batting order, start search at top of order
+				//if this inactive player is last in list of players, start search at top of order
 				if(offense.atBatIndex === (offense.players.length - 1)) searchIndex = 0;
 
 				playerAtBat = _.find(offense.players, function(player){
 					return (player.active || (player.inactive === undefined));
 				}, searchIndex);
+
+				//reached the end of batting order without finding active player, so search again from top;
+				//can happen if this inactive player is at end of batting order but is not the very last player in list
+				if(!playerAtBat){
+					playerAtBat = _.find(offense.players, function(player){
+						return (player.active || (player.inactive === undefined));
+					}, 0);
+				}
+
 				offense.atBatIndex = _.findIndex(offense.players, {id: playerAtBat.id});
 			}
 
@@ -291,25 +301,27 @@ module.exports = function(module){
 			if(succeeded){
 				player.SB++;
 				pitcher.stolenBasesAllowed++;
-				//recordStatForDisplay(player, 'SB', offense.batting);
+				recordStatForTeamDisplay(player, appConstants.STATS_DISPLAY.STOLEN_BASES);
 			}
 			else{
 				player.CS++;
 				pitcher.battersCaughtStealing++;
-				//recordStatForDisplay(player, 'CS', offense.batting);
+				recordStatForTeamDisplay(player, appConstants.STATS_DISPLAY.CAUGHT_STEALING);
 			}
 		}
 
-		function recordStatForTeamBattingDisplay(player, stat){
+		function recordStatForTeamDisplay(player, stat){
 			var prefix = player.lastName + ' (';
 			var suffix = 'x)';
 
 			if(player[stat] === 1){
 				player.statDisplay[stat] = player.lastName;
-				offense.batting[stat].push(player);
+				offense.batting[stat].push(player.statDisplay[stat]);
 			}
 			else{
+				var existingStatIndex = offense.batting[stat].indexOf(player[stat]);
 				player.statDisplay[stat] = (prefix + player[stat] + suffix);
+				offense.batting[stat].splice(existingStatIndex, 1, player.statDisplay[stat]);
 			}
 		}
 
@@ -341,7 +353,7 @@ module.exports = function(module){
 				batter.totalBases += 4;
 				batter.runs++;
 				batter.HR++;
-				recordStatForTeamBattingDisplay(batter, appConstants.STATS_DISPLAY.HOMERUN);
+				recordStatForTeamDisplay(batter, appConstants.STATS_DISPLAY.HOMERUNS);
 
 				offense.battingTotals.totalHRs++;
 				offense.battingTotals.totalHits++;
@@ -349,6 +361,7 @@ module.exports = function(module){
 
 				if(__.RISP(runnersOnBeforePlay)){
 					offense.batting.hitsWithRISP++;
+					offense.batting.hittingWithRISP = (offense.batting.hitsWithRISP + ' FOR ' + offense.batting.atBatsWithRISP);
 				}
 			}
 
@@ -390,19 +403,19 @@ module.exports = function(module){
 
 			if(twoOutRbi){
 				batter.twoOutRbis++;
-				//recordStatForDisplay(batter, 'twoOutRbis', offense.batting);
+				recordStatForTeamDisplay(batter, appConstants.STATS_DISPLAY.TWO_OUT_RBIS);
 			}
 		}
 
 		function handleSacFlysBunts(batter, indicator){
 			if(indicator === appConstants.GROUND_OUT_INDICATOR){
-				//batter.sacBunts++;
-				//recordStatForDisplay(batter, 'sacBunts', offense.batting);
+				batter.sacBunts++;
+				recordStatForTeamDisplay(batter, appConstants.STATS_DISPLAY.SAC_BUNTS);
 			}
 
 			if(indicator === appConstants.FLY_OUT_INDICATOR){
 				batter.sacFlys++;
-				//recordStatForDisplay(batter, 'sacFlys', offense.batting);
+				recordStatForTeamDisplay(batter, appConstants.STATS_DISPLAY.SAC_FLYS);
 			}
 		}
 
@@ -425,6 +438,7 @@ module.exports = function(module){
 
 		function handleTotalStrikes(battingResults){
 			var pitcher = getPitcher();
+			pitcher.totalStrikes++;
 
 			if(battingResults.contactMade){
 				if(battingResults.fouledAway) pitcher.foulBalls++;
@@ -442,11 +456,11 @@ module.exports = function(module){
 
 			if(validAB){
 				batter.atBats++;
-
 				offense.battingTotals.totalABs++;
 
 				if(__.RISP(runnersOnBeforePlay)){
 					offense.batting.atBatsWithRISP++;
+					offense.batting.hittingWithRISP = (offense.batting.hitsWithRISP + ' FOR ' + offense.batting.atBatsWithRISP);
 				}
 			}
 		}
@@ -515,7 +529,7 @@ module.exports = function(module){
 					pitcher.hitsAllowed++;
 					pitcher.doublesAllowed++;
 					offense.battingTotals.totalHits++;
-					//recordStatForDisplay(batter, 'doubles', offense.batting);
+					recordStatForTeamDisplay(batter, appConstants.STATS_DISPLAY.DOUBLES);
 					creditHit = true;
 				}
 				else if(((baseBatterAdvancedTo === appConstants.GAME_PLAY.BASES['3'].baseId) && notFieldersChoiceNorThrownOut) || ((baseBatterAdvancedTo === appConstants.GAME_PLAY.BASES['4'].baseId) && fieldersChoiceOrOutOnXB)){
@@ -525,7 +539,7 @@ module.exports = function(module){
 					pitcher.hitsAllowed++;
 					pitcher.triplesAllowed++;
 					offense.battingTotals.totalHits++;
-					//recordStatForDisplay(batter, 'triples', offense.batting);
+					recordStatForTeamDisplay(batter, appConstants.STATS_DISPLAY.TRIPLES);
 					creditHit = true;
 				}
 				//in the park HR
@@ -537,8 +551,10 @@ module.exports = function(module){
 					creditHit = true;
 				}
 
-				if(creditHit && __.RISP(runnersOnBeforePlay)){
-					offense.batting.hitsWithRISP++;
+				if(__.RISP(runnersOnBeforePlay)){
+					if(creditHit) offense.batting.hitsWithRISP++;
+
+					offense.batting.hittingWithRISP = (offense.batting.hitsWithRISP + ' FOR ' + offense.batting.atBatsWithRISP);
 				}
 			}
 		}
@@ -555,14 +571,14 @@ module.exports = function(module){
 
 				if(leftRISPwithTwoOut){
 					batter.leftRISPwithTwoOut++;
-					//recordStatForDisplay(batter, 'leftRISPwithTwoOut', teamStats[offenseIndex].batting);
+					recordStatForTeamDisplay(batter, appConstants.STATS_DISPLAY.LEFT_RISP_WITH_TWO_OUTS);
 				}
 			}
 		}
 
 		function handleGIDP(batter){
 			batter.GIDP++;
-			//recordStatForDisplay(batter, 'GIDP', teamStats[offenseIndex].batting);
+			recordStatForTeamDisplay(batter, appConstants.STATS_DISPLAY.GIDP);
 		}
 
 		function handlePitcherChange(){
@@ -623,6 +639,16 @@ module.exports = function(module){
 		function handleError(defender){
 			defender.errors++;
 			defense.totalErrors++;
+		}
+
+		function resetGame(){
+			ballCount = 0;
+			strikeCount = 0;
+			outCount = 0;
+			inningCount = 1.0;
+			inningEnded = false;
+			indecesUpdated = false;
+			pitchersBroughtIn = 0;
 		}
 	}
 }

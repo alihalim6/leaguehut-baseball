@@ -93,8 +93,7 @@ module.exports = function(module){
 			//check to see if more likely to swing
 			//more AWR players will be more likely to swing so as to try and not get a STRIKE looking
 			else if(!battingResults.positiveId){
-				moreLikelyToSwing = 
-					(idDifference <= battingConstants.BATTER_ID_MORE_LIKELY_SWING_DIFF_MAX) && __.getRandomIntInclusive(0, 100) <= __.getRandomIntInclusive(0, batter.awareness);
+				moreLikelyToSwing = ((idDifference <= battingConstants.BATTER_ID_MORE_LIKELY_SWING_DIFF_MAX) && (__.getRandomIntInclusive(0, 100) <= __.getRandomIntInclusive(0, batter.awareness)));
 			}
 			//POS on zone
 			else{
@@ -318,9 +317,9 @@ module.exports = function(module){
 
 			generateSwingLikeliness(idDifference);
 			swung = (swingLikelinessNum <= battingResults.chanceOfSwinging);
-			battingResults.swung = swung;
-
+			
 			if(!pitch.hitByPitch){
+				battingResults.swung = swung;
 
 				if(swung){
 					generateContactLikeliness(idDifference);
@@ -370,14 +369,14 @@ module.exports = function(module){
 					var cStrikePerc = pitch.cStrikePerc;
 					var umpireCallNum = __.getRandomDecimalInclusive(0, 100, 2);
 
-					if(cStrikePerc < 100 && cStrikePerc > 0){
+					if((cStrikePerc < 100) && (cStrikePerc > 0)){
 						//EVALUATE ME--most fastballs have incr likelihood of being called strike (ok b/c less movement->easier for ump?)
 						var umpireCallNum = __.getRandomDecimalInclusive(pitchConstants.MIN_QUAL_FOR_CSTRIKE_CHECK, pitchConstants.MAX_QUAL_FOR_CSTRIKE_CHECK, 2);
 						var aidedByPitchQuality = (umpireCallNum <= pitch.pitchQuality);
 						var umpireCallDelta = (pitch.pitchQuality * pitchConstants.QUAL_CSTRIKE_MULTIPLIER);
-						umpireCallDelta *= aidedByPitchQuality ? 1 : -1;
+						umpireCallDelta *= (aidedByPitchQuality ? 1 : -1);
 						var finalCalledStrikePerc = (cStrikePerc + umpireCallDelta);
-						battingResults.umpireCallOnNonSwing = (umpireCallNum <= finalCalledStrikePerc) ? appConstants.STRIKE : appConstants.BALL;
+						battingResults.umpireCallOnNonSwing = ((umpireCallNum <= finalCalledStrikePerc) ? appConstants.STRIKE : appConstants.BALL);
 					}
 					else{
 						battingResults.umpireCallOnNonSwing = ((cStrikePerc === 100) ? appConstants.STRIKE : appConstants.BALL);

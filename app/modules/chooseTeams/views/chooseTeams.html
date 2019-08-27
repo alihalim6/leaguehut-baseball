@@ -36,7 +36,7 @@
 	 <ul class="choose-teams-carousel">
 		<li class="slide team-slide" ng-repeat="team in teams" ng-init="$slideIndex = $index">
 			<h1 class="team-name team-{{team.id}}-font">
-				{{team.name}}
+				{{::team.name}}
 
 				<button ng-disabled="teamChosen[team.id]" ng-click="chooseTeam(team.id, team.name)" class="choose-team-button" ng-class="{'disable-choose-team': teamChosen[team.id]}">Select Team</button>
 			</h1>
@@ -74,6 +74,9 @@
 				<svg-icon svg-url="'down_chevron'" ng-show="bullpenToggle === 'View'" class="toggle-bullpen-chevron"></svg-icon>
 				<svg-icon svg-url="'up_chevron'" ng-show="bullpenToggle === 'Hide'" class="toggle-bullpen-chevron"></svg-icon>
 			</div>
+
+			<svg-icon svg-url="'left_chevron'" ng-click="prevSlide()" class="slide-nav-chevron"></svg-icon>
+			<svg-icon svg-url="'right_chevron'" ng-click="nextSlide()" class="slide-nav-chevron slide-nav-chevron-right"></svg-icon>
 		</li>
 	</ul>
 </div>

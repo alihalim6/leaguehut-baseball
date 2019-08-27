@@ -196,7 +196,7 @@ module.exports = function(module){
 						(2) by any runner being forced out; or
 						(3) by a preceding runner who is declared out because he failed to touch one of the bases.*/
 				
-				if(((currentBase) == 4 && !params.thirdOutRecorded) || ((currentBase == 4) && params.thirdOutRecorded && !params.forceOut)){
+				if(((currentBase === 4) && !params.thirdOutRecorded) || ((currentBase === 4) && params.thirdOutRecorded && !params.forceOut)){
 					if(!baseRunningResults.playersWhoScored) baseRunningResults.playersWhoScored = [];
 
 					baseRunningResults.playersWhoScored.push(baseRunners[i]);
@@ -214,7 +214,7 @@ module.exports = function(module){
 					continue;
 				}
 				else if(params.thirdOutRecorded){
-					if(currentBase == 4){
+					if(currentBase === 4){
 						baseRunners[i].currentBase -= 1;
 					}
 
@@ -222,8 +222,8 @@ module.exports = function(module){
 				}
 
 				var nextBase = (currentBase + 1);
-				var baseAfterNext = (nextBase == 4) ? 0 : (nextBase + 1);
-				var threeBasesAhead = (nextBase == 2) ? (baseAfterNext + 1) : 0;
+				var baseAfterNext = (nextBase === 4) ? 0 : (nextBase + 1);
+				var threeBasesAhead = (nextBase === 2) ? (baseAfterNext + 1) : 0;
 				baseRunners[i].nextBase = nextBase;
 				baseRunners[i].baseAfterNext = baseAfterNext;
 				baseRunners[i].threeBasesAhead = threeBasesAhead;
@@ -620,10 +620,10 @@ module.exports = function(module){
 			//this is so that if it is hit, runner is timed from that moment, BAU
 			//and if caught, runner is timed from when catcher catches it and can get it to base
 			runner.distanceIfNoSteal = runner.currentDistance;
-			runner.currentDistance = (runner.currentDistance + (projectedTotalTimeToPlate * runner.actualRunningRate));
+			runner.currentDistance += (projectedTotalTimeToPlate * runner.actualRunningRate);
 			
 			//has from time it takes for catcher throw to base
-			runner.totalTimeToReachBase = projectedTotalTimeToBase;
+			runner.totalTimeToReachBase = (projectedTotalTimeToBase + __.getRandomDecimalInclusive(baseRunningConstants.BASE_STEALING.FIELDER_CATCH_TAG_TIME.min, baseRunningConstants.BASE_STEALING.FIELDER_CATCH_TAG_TIME.max, 2));
 
 
 			//***INNING***
@@ -702,7 +702,7 @@ module.exports = function(module){
 			var basesBeingAttempted = [];
 
 			_.each(baseRunners, function(runner){
-				if((runner.runSpeed >= baseRunningConstants.BASE_STEALING.MIN_STEAL_SPD || runner.signalledToSteal) && stealingBase(currentBases, runner, playHandedness)){
+				if((runner.nextBase < 4) && (runner.runSpeed >= baseRunningConstants.BASE_STEALING.MIN_STEAL_SPD || runner.signalledToSteal) && stealingBase(currentBases, runner, playHandedness)){
 					runner.stealingBase = true;
 					stealAttempt = true;
 					basesBeingAttempted.push(runner.nextBase);
@@ -736,10 +736,11 @@ module.exports = function(module){
 			var offense = gamePlayService.getOffense();
 
 			_.each(baseRunners, function(runner){
-				if(!thirdOutRecorded){
+				if(runner && !thirdOutRecorded){
 					if(runner.stealingBase && !runner.noPlayOnSteal){
 						//BRING IN AWR HERE FOR WHEN HE STARTS RUNNING?
 						//TODO: NOT ALWAYS THROW ON STEAL
+						//ALSO CAN BE DIRECTLY FROM PITCHER
 
 						runner.currentBase = runner.nextBase;
 
@@ -766,12 +767,7 @@ module.exports = function(module){
 						});
 					}
 					else if(runner.noPlayOnSteal){
-						baseRunningResults.stealResults.push({
-							runnerLastName: runner.lastName,
-							attemptedBase: runner.nextBase,
-							success: false 
-						});
-						thirdOutRecorded = handlePlayAction({updateOutsOnly : true, noPlayOnSteal : true});
+						thirdOutRecorded = handlePlayAction({updateOutsOnly : true});
 					}
 				}
 			});

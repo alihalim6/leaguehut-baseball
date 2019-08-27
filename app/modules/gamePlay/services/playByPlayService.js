@@ -8,7 +8,8 @@ module.exports = function(module){
 		var playByPlay = {};
 
 		var api = {
-			generatePlayByPlay: generatePlayByPlay
+			generatePlayByPlay: generatePlayByPlay,
+			resetPlayByPlay: resetPlayByPlay
 		};
 
 		return api;
@@ -100,8 +101,13 @@ module.exports = function(module){
 					playCall += ___.bool() ?
 						result.runnerLastName + ' takes off to ' + appConstants.NUMBERS_FOR_DISPLAY[result.attemptedBase] + ' base ' + 
 							(result.success ? ' and beats the throw' + ((result.attemptedBase === 2 && resultingBaseRunners.length === 1) ? ' from ' + catcher.lastName + ', putting ' + offense.name + ' in scoring position' : '') : ' but is thrown out') + '. ' :
-						'Steal attempt by ' + result.runnerLastName + (result.success ? (result.attemptedBase === 3 ? ' beats the throw from ' + catcher.lastName + ' and puts ' + offense.name + ' 90 ft away from a run' : ' succeeds') : ' fails as he is tagged out before touching the bag') + '. Great throw from ' + catcher.lastName + '. ';
+						'Steal attempt by ' + result.runnerLastName + (result.success ? (result.attemptedBase === 3 ? ' beats the throw from ' + catcher.lastName + ' and puts ' + offense.name + ' 90 ft away from a run' : ' succeeds') : ' fails as he is tagged out before touching the bag. Great throw from ' + catcher.lastName) + '. ';
 					
+					//stolen base can result in inning end and pitcher change
+					if(pitch.pitcherChange){
+						generatePitcherChangePlayCall(___, pitch, playCall);
+					}
+
 					if(baseRunningResults.clearBases){
 						playByPlay[params.inning].unshift({
 							count: (params.balls + '-' + params.strikes),
@@ -135,7 +141,7 @@ module.exports = function(module){
 						
 						var fouledAwayCallTwo = (___.bool() && ((params.balls === resultingStrikeCount) && !(battingResults.fouledAway && params.strikes === 2))) ?
 							'Pitch ' + pitchLocationCall + ' is fouled away. Count evened up. ' : 
-							capitalizedPitchType + ' is fought off into the stands. ';
+							capitalizedPitchType + ' is' + (___.bool() ? ' fought off into the stands' : ' fouled off') + '. ';
 					
 						playCall = (___.bool() ? fouledAwayCallOne : fouledAwayCallTwo);
 					}
@@ -227,7 +233,7 @@ module.exports = function(module){
 							//FLYOUTS
 							if(fieldingResults.ballCaught){
 								playCall = ___.bool() ?
-									batter.lastName + ' ' + fieldOutForDsiplay + (isPopout ? ' as ' + fielderLastName + ' gets under it' : ' to ' + hitSectionForCall) + '. ' :
+									batter.lastName + ' ' + fieldOutForDsiplay + (isPopout ? ' as ' + fielderLastName + ' gets under it for the easy catch' : ' to ' + hitSectionForCall) + '. ' :
 									(isPopout ? 'Pitch popped up and ' : capitalizedBattedBallType + ' hit to ' + hitSectionForCall + '. ') + fielderLastName + ' able to get under it and make the play' 
 										+ ((fieldingResults.finalChanceOfFielding < fieldingConstants.DIFFICULT_FIELD_OUT_MAX_CHANCE) ? '. He really had to lay out for that one.  Great effort. ' : ' for the ' + appConstants.NUMBERS_FOR_DISPLAY[resultingOutCount] + ' out. ');
 
@@ -426,15 +432,7 @@ module.exports = function(module){
 			}
 			
 			if(pitch.pitcherChange){
-				//move play by play container down to accomodate pitcher(s) added
-
-				if(gamePlayService.getNumberOfPitchersBroughtIn() === 1) $('#playByPlayContainer').css('margin-top', '100px');
-				//a closer has been brought in
-				else $('#playByPlayContainer').css('margin-top', '140px');
-
-				playCallPartTwo += ___.bool() ?
-					'That was the last pitch for ' + pitch.pitcherChange.takenOut.lastName + ' as he\'s taken out for ' + pitch.pitcherChange.broughtIn.lastName + '. ' :
-					defense.name + ' calls it a day for ' + pitch.pitcherChange.takenOut.lastName + ' and brings in ' + pitch.pitcherChange.broughtIn.lastName + '. ';
+				generatePitcherChangePlayCall(___, pitch, playCallPartTwo);
 			}
 
 			//insert each new play at beginning so they latest show on top
@@ -452,6 +450,22 @@ module.exports = function(module){
 			});
 
 			return playByPlay;
+		}
+
+		function generatePitcherChangePlayCall(___, pitch, playCall){
+			//move play by play container down to accomodate pitcher(s) added
+
+			if(gamePlayService.getNumberOfPitchersBroughtIn() === 1) $('#playByPlayContainer').css('margin-top', '100px');
+			//a closer has been brought in
+			else $('#playByPlayContainer').css('margin-top', '140px');
+
+			playCall += ___.bool() ?
+				'That was the last pitch for ' + pitch.pitcherChange.takenOut.lastName + '. ' + pitch.pitcherChange.broughtIn.lastName + ' will be on the mound next inning for ' + defense.name + '. ' :
+				defense.name + ' calls it a day for ' + pitch.pitcherChange.takenOut.lastName + '. ';
+		}
+
+		function resetPlayByPlay(){
+			playByPlay = {};
 		}
 	}
 }

@@ -18,6 +18,9 @@ module.exports = function(module){
 
 		this.setUpTeamStats = function(){
 			_.each(this.gameTeams, function(team){
+				team.atBatIndex = 0;
+                team.pitchersBroughtIn = 0;
+
 				team.inningScores = {
 					'1' : 0,
 					'2' : 0,
@@ -66,32 +69,121 @@ module.exports = function(module){
 		this.setUpBoxScore = function(){
 			var teamIndex = 0;
 			this.playerBattingCategories = [' ', 'AB', 'R', 'H', 'TB', 'RBI', 'HR', 'BB', 'SO', 'LOB', 'E'];
-			this.teamBattingCategories = ['2B', '3B', '2-out RBI', 'Left RISP w/ 2 outs', 'SF', 'GIDP', 'HR', 'SB', 'CS'];
+			this.teamBattingCategories = [
+				{
+					label: 'DOUBLES',
+					id: appConstants.STATS_DISPLAY.DOUBLES
+				},
+				{
+					label: 'TRIPLES',
+					id: appConstants.STATS_DISPLAY.TRIPLES
+				},
+				{
+					label: 'HOMERUNS',
+					id: appConstants.STATS_DISPLAY.HOMERUNS
+				},
+				{
+					label: '2-OUT RBIs',
+					id: appConstants.STATS_DISPLAY.TWO_OUT_RBIS
+				},
+				{
+					label: 'LEFT RISP w/ 2 OUTS',
+					id: appConstants.STATS_DISPLAY.LEFT_RISP_WITH_TWO_OUTS
+				},
+				{
+					label: 'TEAM W/ RISP',
+					id: appConstants.STATS_DISPLAY.HITTING_WITH_RISP,
+					displayDirectValue: true
+				},
+				{
+					label: 'SAC FLYS',
+					id: appConstants.STATS_DISPLAY.SAC_FLYS
+				},
+				{
+					label: 'GIDP',
+					id: appConstants.STATS_DISPLAY.GIDP
+				},
+				{
+					label: 'STOLEN BASES',
+					id: appConstants.STATS_DISPLAY.STOLEN_BASES
+				},
+				{
+					label: 'CAUGHT STEALING',
+					id: appConstants.STATS_DISPLAY.CAUGHT_STEALING
+				}
+			];
 			this.pitchingCategories = [' ', 'IP', 'H', 'R', 'BB', 'K', 'PITCHES'];
 			this.pitcherGameStats = [
 				{
 					label: 'IP',
-					id: 'inningsPitched'
+					id: appConstants.STATS_DISPLAY.INNINGS_PITCHED
 				},
 				{
 					label: 'H',
-					id: 'hitsAllowed'
+					id: appConstants.STATS_DISPLAY.HITS_ALLOWED
 				},
 				{
 					label: 'R',
-					id: 'runsAllowed'
+					id: appConstants.STATS_DISPLAY.RUNS_ALLOWED
 				},
 				{
 					label: 'BB',
-					id: 'battersWalked'
+					id: appConstants.STATS_DISPLAY.BATTERS_WALKED
 				},
 				{
 					label: 'K',
-					id: 'battersStruckOut'
+					id: appConstants.STATS_DISPLAY.BATTERS_STRUCK_OUT
 				},
 				{
 					label: 'PITCHES',
-					id: 'pitches'
+					id: appConstants.STATS_DISPLAY.PITCHES
+				}
+			];
+
+			this.teamPitchingCategories = [
+				{
+					label: 'PITCHES',
+					id: appConstants.STATS_DISPLAY.PITCHES
+				},
+				{
+					label: 'TOTAL STRIKES',
+					id: appConstants.STATS_DISPLAY.TOTAL_STRIKES
+				},
+				{
+					label: 'CALLED',
+					id: appConstants.STATS_DISPLAY.CALLED_STRIKES,
+					subStat: true
+				},
+				{
+					label: 'SWINGING',
+					id: appConstants.STATS_DISPLAY.SWINGING_STRIKES,
+					subStat: true
+				},
+				{
+					label: 'FOULED',
+					id: appConstants.STATS_DISPLAY.FOUL_STRIKES,
+					subStat: true
+				},
+				{
+					label: 'IN PLAY',
+					id: appConstants.STATS_DISPLAY.BALLS_PUT_INTO_PLAY,
+					subStat: true
+				},
+				{
+					label: 'GROUNDOUTS',
+					id: appConstants.STATS_DISPLAY.GROUNDOUTS
+				},
+				{
+					label: 'FLYOUTS',
+					id: appConstants.STATS_DISPLAY.FLYOUTS
+				},
+				{
+					label: 'BATTERS FACED',
+					id: appConstants.STATS_DISPLAY.BATTERS_FACED
+				},
+				{
+					label: 'FIRST PITCH STRIKES',
+					id: appConstants.STATS_DISPLAY.FIRST_PITCH_STRIKES
 				}
 			];
 
@@ -132,6 +224,7 @@ module.exports = function(module){
 					player.groundOuts = 0;
 					player.flyOuts = 0;
 					player.battersFaced = 0;
+					player.totalStrikes = 0;
 					player.firstPitchStrikes = 0;
 					player.calledStrikes = 0;
 					player.swingingStrikes = 0;
@@ -155,7 +248,7 @@ module.exports = function(module){
 								return ((this.pitches >= this.pitchCount) || (((inning === 8.5) || (inning === 9)) && justPitched));
 							}
 
-							//pitcherIndex[teamIndex] = player.battingOrder;
+							team.startingPitcher = player;
 						}
 						else{
 							if(player.depthPosition === 2){
@@ -168,11 +261,15 @@ module.exports = function(module){
 									//if this pitcher just pitched 8th inning, take him out for closer
 									return (((inning === 8.5) || (inning === 9)) && justPitched);
 								};
+
+								team.middleReliever = player;
 							}
 
 							if(player.depthPosition === 3){
 								player.isCloser = true;
 								player.takePitcherOut = false;
+
+								team.closer = player;
 							}
 
 							player.inactive = true;
@@ -188,28 +285,52 @@ module.exports = function(module){
 
 		}
 
+		this.showTeamStatsModal = function(){
+			$('#teamStatsModal').show();
+		}
+
+		this.closeTeamStatsModal = function(){
+			$('#teamStatsModal').hide();
+		}
+
 		this.animatePitchResultingCount = function(){
 			$('#currentCount').hide();
 			$('#pitchThrown').show();
 
-			$timeout(function(){
+			$timeout(function(params){
+				//don't show count when PA ends
+				if(params.newBatter) $('#currentCount').css('color', '#ffffff');
+				
 				$('#currentCount').show();
 				$('#pitchThrown').hide();
-			}, appConstants.GAME_PLAY.PITCH_RESULTING_COUNT_ANIMATION_TIME);
+			}, appConstants.GAME_PLAY.PITCH_RESULTING_COUNT_ANIMATION_TIME, true, {newBatter: this.newBatter, count: this.count});
 		}
 
 		this.animatePitch = function(pitch, battingResults){
 			var ballElement = '<div class="pitch-thrown-ball" id="pitchThrownBall' + this.pitcher.pitches + '"></div>';
+			var animationContainer = (pitch.hitByPitch ? '.batter-silhouette' : '#strikeZone');
 			var pitchThrownBall = $compile(ballElement)(this);
-			$('#strikeZone').append(pitchThrownBall);
+			$(animationContainer).append(pitchThrownBall);
 
 			var pitchThrownBallElement = document.getElementById('pitchThrownBall' + this.pitcher.pitches);
 			var animationName = 'animate-';
 			var strikeZoneResult;
 			var keyframe;
 			var keyframeRules;
+			
 			var locationKey = (this.batter.handedness + pitch.location);
+			var pitchType = (pitch.pitchSubType ? pitch.pitchSubType : pitch.pitchType);
+			var pitchMovementRanges = pitchConstants.PITCH_ANIMATION_MOVEMENT[pitchType];
+			var xMovementMultiplier = ((this.pitcher.handedness === appConstants.LEFT) ? 1 : -1);
+			var initialPitchXY;
+			var finalPitchXY;
+			var ballPositionDivider = 1;
+
 			var animation = _.find(pitchConstants.PITCH_ANIMATION, function(config){
+				return _.includes(config.locations, locationKey);
+			});
+
+			var potentialMiscalledBallReposition = _.find(pitchConstants.MISCALLED_BALL_REPOSITION, function(config){
 				return _.includes(config.locations, locationKey);
 			});
 
@@ -217,29 +338,34 @@ module.exports = function(module){
 			//SET KEYFRAME
 
 			//HBP
-			if(pitch.hitByPitch) animationName += 'hit-by-pitch';
-
-			//CALLED BALL OR STRIKE
-			if(battingResults.umpireCallOnNonSwing){
-				if(battingResults.umpireCallOnNonSwing === appConstants.BALL) strikeZoneResult = 'called-ball';
-				else strikeZoneResult = 'called-strike';
+			if(pitch.hitByPitch){
+				strikeZoneResult = 'hit-by-pitch';
+				$(pitchThrownBall).addClass('hit-by-pitch-ball');
+				ballPositionDivider = appConstants.GAME_PLAY.STRIKE_ZONE_BALL_POSITION_DIVIDER;
 			}
-
-			//SWUNG
-			if(battingResults.swung){
-				//CONTACT MADE
-				if(battingResults.contactMade){
-					if(battingResults.fouledAway) strikeZoneResult = 'foul';
-					else strikeZoneResult = 'put-into-play';
+			else{
+				//CALLED BALL OR STRIKE
+				if(battingResults.umpireCallOnNonSwing){
+					if(battingResults.umpireCallOnNonSwing === appConstants.BALL) strikeZoneResult = 'called-ball';
+					else strikeZoneResult = 'called-strike';
 				}
-				//SWING AND MISS
-				else{
-					strikeZoneResult = 'swinging-strike';
+
+				//SWUNG
+				if(battingResults.swung){
+					//CONTACT MADE
+					if(battingResults.contactMade){
+						if(battingResults.fouledAway) strikeZoneResult = 'foul';
+						else strikeZoneResult = 'put-into-play';
+					}
+					//SWING AND MISS
+					else{
+						strikeZoneResult = 'swinging-strike';
+					}
 				}
 			}
 
 			animationName += strikeZoneResult;
-
+			
 
 			//SET KEYFRAME OBJECT TO USE
 			
@@ -256,7 +382,7 @@ module.exports = function(module){
 		    });
 
 
-		    //PROCESS ANIMATION RULES FOR THIS PITCH AND DISPLAY IT
+		    //PROCESS ANIMATION RULES FOR THIS PITCH
 
 		    if(keyframe){
 			    keyframeRules = keyframe.cssRules;
@@ -281,10 +407,44 @@ module.exports = function(module){
 			    keyframe.appendRule('from {height: 0px;}');
 			    keyframe.appendRule('to {height: ' + appConstants.GAME_PLAY.STRIKE_ZONE_BALL_SIZE + 'px;}');
 
-				$(pitchThrownBall).css({
-					top: __.getRandomDecimalInclusive(animation.ranges.minTop, animation.ranges.maxTop, 5) + 'px',
-					left:  __.getRandomDecimalInclusive(animation.ranges.minLeft, animation.ranges.maxLeft, 5) + 'px'
-				});
+			    //BALL MOVEMENT
+			    finalPitchXY = {
+			    	x: (__.getRandomDecimalInclusive(animation.ranges.minLeft, animation.ranges.maxLeft, 5) / ballPositionDivider),
+			    	y: (__.getRandomDecimalInclusive(animation.ranges.minTop, animation.ranges.maxTop, 5) / ballPositionDivider)
+			    };
+
+			    //REPOSITION MISCALLED BALL IF WOULD DISPLAY TOO FAR IN ZONE
+			    if((battingResults.umpireCallOnNonSwing === appConstants.BALL) && potentialMiscalledBallReposition){
+			    	var positionToChange = (potentialMiscalledBallReposition.repositionX ? 'x' : 'y');
+
+			    	//left/top of zone
+		    		if((finalPitchXY[positionToChange] >= potentialMiscalledBallReposition.repositionLimit) && potentialMiscalledBallReposition.isGreaterThanLimit){
+						finalPitchXY[positionToChange] = __.getRandomDecimalInclusive(potentialMiscalledBallReposition.zoneLimit, potentialMiscalledBallReposition.repositionLimit, 5);
+					}
+					//bottom/right of zone
+					else if((finalPitchXY[positionToChange] <= potentialMiscalledBallReposition.repositionLimit) && !potentialMiscalledBallReposition.isGreaterThanLimit){
+						finalPitchXY[positionToChange] = __.getRandomDecimalInclusive(potentialMiscalledBallReposition.repositionLimit, potentialMiscalledBallReposition.zoneLimit, 5);
+					}
+			    }
+
+			    initialPitchXY = {
+			    	x: (finalPitchXY.x + (xMovementMultiplier * __.getRandomDecimalInclusive(pitchMovementRanges.horizontal.min, pitchMovementRanges.horizontal.max, 5))),
+			    	//vertical movement is always down so initial y is lower (subtracted)
+			    	y: (finalPitchXY.y - __.getRandomDecimalInclusive(pitchMovementRanges.vertical.min, pitchMovementRanges.vertical.max, 5))
+			    }
+
+			    $(pitchThrownBall).css({
+			    	left: finalPitchXY.x + 'px',
+			    	top: finalPitchXY.y + 'px'
+			    });
+
+			    keyframe.appendRule('from {left: ' + initialPitchXY.x + 'px;}');
+			    keyframe.appendRule('to {left: ' + finalPitchXY.x + 'px;}');
+			    keyframe.appendRule('from {top: ' + initialPitchXY.y + 'px;}');
+			    keyframe.appendRule('to {top: ' + finalPitchXY.y + 'px;}');
+
+
+			    //ANIMATE
 
 				pitchThrownBallElement.style.webkitAnimationName = animationName;
 				pitchThrownBallElement.style.animationName = animationName;
@@ -320,6 +480,7 @@ module.exports = function(module){
 			if(this.newBatter){
 				this.handleCurrentBatterCard();
 				$('.pitch-thrown-ball').remove();
+				$('#currentCount').css('color', '#000000');
 			}
 
 			if(gamePlayService.hasInningEnded()){
@@ -341,11 +502,12 @@ module.exports = function(module){
 
 		this.initializeGame = function(){
 			this.setUpPlay();
-			gamePlayService.setInningEnded(false);
 			gamePlayService.setField(this.gameTeams[0], this.gameTeams[1], true);
+			this.handleCurrentPitcherCard();
 			this.handleCurrentBatterCard();
 			this.currentPlayByPlaySelected = this.currentInningForPlayByPlay;
 			this.plateAppearancePitchNumber = 1;
+			this.newBatter = undefined;
 		}
 
 		this.runPlay = function(){
@@ -419,7 +581,7 @@ module.exports = function(module){
 
 			if(__.validRBI(this.batter, battingResults, fieldingResults, baseRunningResults, currentOffenseScore, offenseScoreBeforePlay)){
 				var runsBattedIn = (currentOffenseScore - offenseScoreBeforePlay);
-				gamePlayService.handleRBI(this.batter, runsBattedIn, (this.currentOuts === 2));
+				gamePlayService.handleRBI(this.batter, runsBattedIn, (outsBeforePlay === 2));
 
 				//SAC FLYs
 				if(fieldingResults.ballCaught && (outsBeforePlay < 2)){
@@ -462,7 +624,7 @@ module.exports = function(module){
 					playersThrownOut : baseRunningResults.playersThrownOut, 
 					fieldersChoice : fieldersChoice, 
 					baseBatterAdvancedTo : fieldingResults.baseBatterAdvancedTo, 
-					runnersOnBeforePlay : basesStatusBeforePlay,
+					runnersOnBeforePlay : basesStatusBeforePlay.code,
 					inTheParkHR : baseRunningResults.inTheParkHR
 				});
 			}
@@ -472,7 +634,7 @@ module.exports = function(module){
 			if((this.batter.id !== nextBatter.id) || stealAttemptFailedFor3rdOut){
 				//AT BATS/PAs
 				if(!stealAttemptFailedFor3rdOut){
-					gamePlayService.handlePlateAppearance(this.batter, __.validAtBat(battingResults, fieldingResults, sacrificeFly), basesStatusBeforePlay);
+					gamePlayService.handlePlateAppearance(this.batter, __.validAtBat(battingResults, fieldingResults, sacrificeFly), basesStatusBeforePlay.code);
 				}
 
 				this.newBatter = true;
@@ -487,7 +649,7 @@ module.exports = function(module){
 				var baseRunnersStatus = baseRunningService.getBaseRunnersStatus();
 				var basesOccupied = baseRunnersStatus.code;
 				//couldn't use code for runnersCurrentlyOn for scenario when runner who went home 
-				//is set back a base on inning end (see updateBaseRunners)
+				//is set back a base on inning end (see updateBaseRunners);
 				//when this happens, and a diff runner went to 3rd, the details.code sees 1 runner on 3rd even
 				//though there are 2, after setting the former runner back a base
 				var runnersCurrentlyOn = currentBaseRunners.length;
@@ -500,21 +662,16 @@ module.exports = function(module){
 			}
 
 			this.currentOuts = (inningEnded ? 3 : gamePlayService.outs());
+			//fresh pull since HR could've been hit
 			this.currentBases = baseRunningService.getBaseRunnersStatus();
 
 			//GIDP
-			if(__.GIDP(battingResults, baseRunningResults)){
-				gamePlayService.handleGIDP(this.batter);
-			}
-
-			if(baseRunningResults.clearBases){
-				baseRunningService.clearBases();
-			}
-
-			if(inningEnded){
-				pitch.pitcherChange = gamePlayService.updateOffenseAndDefense();
-			}
-
+			if(__.GIDP(battingResults, baseRunningResults)) gamePlayService.handleGIDP(this.batter);
+			
+			if(baseRunningResults.clearBases) baseRunningService.clearBases();
+			
+			if(inningEnded) pitch.pitcherChange = gamePlayService.updateOffenseAndDefense();
+			
 			this.count = ('' + gamePlayService.balls() + '-' + gamePlayService.strikes());
 
 			this.playByPlay = playByPlayService.generatePlayByPlay({
@@ -581,6 +738,15 @@ module.exports = function(module){
 		}
 
 		this.endGame = function(){
+			this.handleCurrentPitcherCard();
+			this.handleCurrentBatterCard();
+			this.playByPlay = {};
+			baseRunningService.clearBases();
+			playByPlayService.resetPlayByPlay();
+			gamePlayService.resetGame();
+			//reset team selection screen so it displays fresh in case window was resized after starting game
+			$('.choose-teams-carousel').slick('slickGoTo', 0, true);
+
 			this.gameInProgress = false;
 		}
 

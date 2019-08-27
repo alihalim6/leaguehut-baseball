@@ -108,7 +108,33 @@ module.exports = function(module){
 		},
 
 		STATS_DISPLAY: {
-			HOMERUN: 'HR'
+			HOMERUNS: 'HR',
+			STOLEN_BASES: 'SB',
+			CAUGHT_STEALING: 'CS',
+			TWO_OUT_RBIS: 'twoOutRbis',
+			SAC_BUNTS: 'sacBunts',
+			SAC_FLYS: 'sacFlys',
+			DOUBLES: 'doubles',
+			TRIPLES: 'triples',
+			LEFT_RISP_WITH_TWO_OUTS: 'leftRISPwithTwoOut',
+			GIDP: 'GIDP',
+			HITTING_WITH_RISP: 'hittingWithRISP',
+
+			INNINGS_PITCHED: 'inningsPitched',
+			HITS_ALLOWED: 'hitsAllowed',
+			RUNS_ALLOWED: 'runsAllowed',
+			BATTERS_WALKED: 'battersWalked',
+			BATTERS_STRUCK_OUT: 'battersStruckOut',
+			PITCHES: 'pitches',
+			TOTAL_STRIKES: 'totalStrikes',
+			CALLED_STRIKES: 'calledStrikes',
+			SWINGING_STRIKES: 'swingingStrikes',
+			FOUL_STRIKES: 'foulBalls',
+			BALLS_PUT_INTO_PLAY: 'ballsPutIntoPlay',
+			GROUNDOUTS: 'groundOuts',
+			FLYOUTS: 'flyOuts',
+			BATTERS_FACED: 'battersFaced',
+			FIRST_PITCH_STRIKES: 'firstPitchStrikes'
 		},
 
 		GAME_PLAY: {
@@ -145,7 +171,7 @@ module.exports = function(module){
 					baseNumber : 1,
 					baseId: '1B',
 					baseName: '1st',
-					outPriority: 30
+					outPriority: 50
 				},
 				'2' : {
 					x : 200,
@@ -163,7 +189,7 @@ module.exports = function(module){
 					baseNumber : 3,
 					baseId: '3B',
 					baseName: '3rd',
-					outPriority: 10
+					outPriority: 5
 				},
 				'4' : {
 					x : 200,
@@ -182,6 +208,7 @@ module.exports = function(module){
 			PITCH_RESULTING_COUNT_ANIMATION_TIME: 2000,
 			PITCH_ANIMATION_PA_PITCH_NUMBER_TIME: 500,
 			STRIKE_ZONE_BALL_SIZE: 13,
+			STRIKE_ZONE_BALL_POSITION_DIVIDER: 2,
 			STRIKE_ZONE_BALL_COLORS: {
 				calledBall: '#ff0000',
 				calledStrike: '#00ff00',

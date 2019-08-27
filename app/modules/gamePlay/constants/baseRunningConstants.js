@@ -17,34 +17,35 @@ module.exports = function(module){
 		},
 
 		BASE_STEALING : {
-			MIN_STEAL_SPD : 70,
+			MIN_STEAL_SPD : 80,
 			THROW_MULTIPLIER: 0.05,
 			MIN_REACH_TIME_DIFF: 1,
+
+			FIELDER_CATCH_TAG_TIME: {
+				min: 0.3,
+				max: 0.7
+			},
 
 			//base chances
 
 			LL : {
 				"2" : 5.87,
-				"3" : 4.62,
-				"4" : 0.03 //excel override
+				"3" : 4.62
 			},
 			
 			LR : {
 				"2" : 6.28,
-				"3" : 4.3,
-				"4" : 0.02 //excel override
+				"3" : 4.3
 			},
 
 			RL : {
 				"2" : 5.81,
-				"3" : 4.27,
-				"4" : 0.04 //excel override
+				"3" : 4.27
 			},
 
 			RR : {
 				"2" : 5.88,
-				"3" : 4.3,
-				"4" : 0.02 // excel override
+				"3" : 4.3
 			},
 
 			//DOUBLE/TRIPLE STEAL CHANCES
@@ -57,19 +58,18 @@ module.exports = function(module){
 
 			BREAK_EVEN_RATES : {
 				weight : {
-					max : 5,
-					min : 3
+					max : 3,
+					min : 1
 				},
 
 				"2" : [0.72, 0.73, 0.69],
-				"3" : [0.78, 0.69, 0.88],
-				"4" : [0.87, 0.70, 0.34]
+				"3" : [0.78, 0.69, 0.88]
 			},
 
 			INNING : {
 				weight : {
-					max : 4,
-					min : 2
+					max : 2,
+					min : 0
 				},
 
 				//ranges (innings 1-3), (3-6), (7+)
@@ -96,15 +96,15 @@ module.exports = function(module){
 
 			PITCHER_CATCHER : {
 				weight : {
-					max : 4,
-					min : 3
+					max : 3,
+					min : 1
 				}
 			},
 
 			SCORE : {
 				weight : {
-					max : 0.9,
-					min : 0.5
+					max : 0.7,
+					min : 0.3
 				},
 
 				//inning range multipliers for tied score
