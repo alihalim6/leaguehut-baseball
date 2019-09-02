@@ -19,7 +19,8 @@ module.exports = function(module){
 
 			//END OF HALF/INNING OR GAME
 			if(params.inningEnded && !params.gameOver){
-				if(params.fullInningEnded) playCall = 'End of the ' + params.inning + ' inning. ';
+				var prefix = (params.startOfInning ? 'Top' : 'End');
+				if(params.fullInningEnded) playCall = prefix + ' of the ' + params.inning + ' inning. ';
 				else playCall = 'Bottom of the ' + params.inning + ' inning. ';
 
 				playByPlay[params.inning].unshift({
@@ -32,10 +33,12 @@ module.exports = function(module){
 			}
 			else if(params.gameOver){
 				playByPlay[params.inning].unshift({
-					playCall: 'Game over.',
+					playCall: 'Game over. ' + params.winningTeam.name + ' wins!',
 					announcement: true,
 					gameOver: true
 				});
+
+				return playByPlay;
 			}
 
 			var ___ = (new Chance);
@@ -55,11 +58,7 @@ module.exports = function(module){
 			var pitch = params.pitch;
 			var pitchLocationCall = __.translatePitchLocationForPlayByPlay(pitch.location);
 			var pitchVelocity = pitch.pitchVelocity + ' mph';
-
-			var fieldingResults = params.fieldingResults;
-			var defender = (fieldingResults.playerFieldingBall ? fieldingResults.playerFieldingBall : '');
-			defender = (fieldingResults.playerFieldingMissedBall ? fieldingResults.playerFieldingMissedBall : defender);
-			var fielderLastName = defender.lastName;
+			var pitcherChange = params.pitcherChange;
 
 			var battingResults = params.battingResults;
 			var resultingBallCount = (params.balls + 1);
@@ -74,8 +73,13 @@ module.exports = function(module){
 			var capitalizedBattedBallType = battedBallTypeForCall;
 			battedBallTypeForCall = (battedBallTypeForCall ? battedBallTypeForCall.toLowerCase() : '');
 			var fieldSectionForCall = battingConstants.FIELD_SECTIONS_FOR_DISPLAY[battingResults.fieldSectionHitTo];
+
+			var fieldingResults = params.fieldingResults;
 			var hitSectionForCall = fieldingConstants.HIT_SECTIONS_FOR_DISPLAY[fieldingResults.hitSection];
 			var hitSectionForCallShorthand = fieldingConstants.HIT_SECTIONS_FOR_DISPLAY_SHORTHAND[fieldingResults.hitSection];
+			var defender = (fieldingResults.playerFieldingBall ? fieldingResults.playerFieldingBall : '');
+			defender = (fieldingResults.playerFieldingMissedBall ? fieldingResults.playerFieldingMissedBall : defender);
+			var fielderLastName = defender.lastName;
 
 			var baseRunningResults = params.baseRunningResults;
 			var resultingBaseRunners = baseRunningService.getBaseRunners();
@@ -84,6 +88,8 @@ module.exports = function(module){
 			var defense = params.defense;
 			var offenseScore = offense.battingTotals.totalRuns;
 			var defenseScore = defense.battingTotals.totalRuns;
+
+			var stealCall = false;
 
 
 
@@ -97,6 +103,7 @@ module.exports = function(module){
 				//SINGLE STEAL
 				else{
 					var result = baseRunningResults.stealResults[0];
+					stealCall = true;
 
 					playCall += ___.bool() ?
 						result.runnerLastName + ' takes off to ' + appConstants.NUMBERS_FOR_DISPLAY[result.attemptedBase] + ' base ' + 
@@ -104,8 +111,8 @@ module.exports = function(module){
 						'Steal attempt by ' + result.runnerLastName + (result.success ? (result.attemptedBase === 3 ? ' beats the throw from ' + catcher.lastName + ' and puts ' + offense.name + ' 90 ft away from a run' : ' succeeds') : ' fails as he is tagged out before touching the bag. Great throw from ' + catcher.lastName) + '. ';
 					
 					//stolen base can result in inning end and pitcher change
-					if(pitch.pitcherChange){
-						generatePitcherChangePlayCall(___, pitch, playCall);
+					if(pitcherChange){
+						playCall += generatePitcherChangePlayCall(___, pitcherChange, defense);
 					}
 
 					if(baseRunningResults.clearBases){
@@ -174,21 +181,24 @@ module.exports = function(module){
 						if(battingResults.homeRun){
 							var runnersBattedIn = battingResults.runnersBattedInOnHomeRun.length;
 							var grandSlam = (runnersBattedIn === 3);
-							var offenseTrailingBeforePlay = (params.offenseScoreBeforePlay < params.defenseScoreBeforePlay);
+							var offenseNotLeadingBeforePlay = (params.offenseScoreBeforePlay < params.defenseScoreBeforePlay);
 							var offenseScorelessBeforePlay = !params.offenseScoreBeforePlay;
-							var goAheadHR = (offenseTrailingBeforePlay && (offenseScore > defenseScore));
+							var goAheadHR = (offenseNotLeadingBeforePlay && (offenseScore > defenseScore) && (defenseScore > 0));
+							var leadWord = ((offenseScore !== defenseScore) ? 'lead' : 'game');
+							var leadAction = ((offenseScore > defenseScore) ? 'extended' : ((offenseScore !== defenseScore) ? 'cut into' : 'tied')) + '. ';
 
 							var homeRunCallOne = (___.bool() && runnersBattedIn && !grandSlam) ?
-								batter.lastName + ' hits a ' + appConstants.NUMBERS_WORDS_FOR_DISPLAY[runnersBattedIn + 1] + '-run shot ' + hitDistance + ' to ' + hitSectionForCall + '! ' + (goAheadHR ? offense.name + ' takes the lead! ' : (batter.HR > 1 ? 'His ' + appConstants.NUMBERS_WORDS_FOR_DISPLAY[batter.HR] + ' of the day! ': '')) : 
+								batter.lastName + ' hits a ' + appConstants.NUMBERS_WORDS_FOR_DISPLAY[runnersBattedIn + 1] + '-run shot ' + hitDistance + ' to ' + hitSectionForCall + '! ' + 
+									(goAheadHR ? offense.name + ' takes the lead! ' : (batter.HR > 1 ? 'His ' + appConstants.NUMBERS_FOR_DISPLAY[batter.HR] + ' of the day! ': (offenseScorelessBeforePlay ? offense.name + ' is on the board. ' : ' And the ' + leadWord + ' is ' + leadAction))) : 
 								batter.lastName + ' ' + battingConstants.BATTED_BALL_DESC_FOR_DISPLAY_NO_PITCH_TYPE[battedBallType] + ' deep...HOME RUN! ' + offense.name + '\'s ' + appConstants.NUMBERS_FOR_DISPLAY[offense.battingTotals.totalHRs] + ' of the day' + (goAheadHR ? ' as they take the lead. ' : '. ');
 
 							var homeRunCallTwo = ___.bool() ?
-								'HOME RUN! ' + hitDistance + ' to ' + hitSectionForCall + '. ' + offenseScore + ' to ' + defenseScore + '. ' :
+								'HOME RUN! ' + hitDistance + ' to ' + hitSectionForCall + (batter.HR > 1 ? ' giving ' + batter.lastName + ' ' + batter.HR + ' in the game! ': '. ') + offenseScore + ' to ' + defenseScore + '. ' :
 								pitcher.lastName + '\'s ' + pitchTypeForCall + ' is launched to ' + hitSectionForCall + ' for a HOME RUN! A ' + hitDistance + ' ' + (runnersBattedIn ? appConstants.NUMBERS_WORDS_FOR_DISPLAY[runnersBattedIn + 1] + '-run' : 'solo') + ' shot for ' + batter.lastName + '. ' ;
 							
 							var homeRunCallThree = grandSlam ? 'GRAND SLAM!!! ' + batter.lastName + ' smacks a ' + hitDistance + ' rocket to ' + hitSectionForCall + ' here in the ' + params.inning + '! Wow! ' : 
 								'That one ain\'t coming back! ' + batter.lastName + ' drives the ball ' + hitDistance + ' to ' + hitSectionForCall
-									+ (offenseScorelessBeforePlay ? ', putting ' + offense.name + ' on the board. ' : '. ' + offenseScore + ' to ' + defenseScore + '. ');
+									+ (offenseScorelessBeforePlay ? ', putting ' + offense.name + ' on the board. ' : (goAheadHR ? ' and gives ' + offense.name + ' the lead. ' : '. ' + offenseScore + ' to ' + defenseScore + '. '));
 						
 							playCall = (___.bool() ? homeRunCallOne : homeRunCallTwo);
 							playCall = (___.bool() ? playCall : homeRunCallThree);
@@ -240,8 +250,9 @@ module.exports = function(module){
 								//PLAY ON A BASE RUNNER
 								if(fieldingResults.playToBeMadeOnRunner){
 									var playOnRunnerAttemptCall = ___.bool() ?
-										fielderLastName + (cutOffManLastName ? ' relays it to ' + cutOffManLastName + ' who ' : '') + ' fires it to ' + appConstants.BASES_FOR_DISPLAY[firstThrowBase] + ' for the tag attempt on ' + firstThrowBaseRunnerLastName + '. The throw is ' :
-										firstThrowBaseRunnerLastName + ' tags up and makes his way to ' + appConstants.BASES_FOR_DISPLAY_SHORTHAND[firstThrowBase] + '. The throw in from ' + (fieldingResults.cutOffMan ? 'cutoff man ' + cutOffManLastName : fielderLastName) + ' to ' + appConstants.BASES_FOR_DISPLAY[firstThrowBase] + ' is ' ;
+										fielderLastName + (cutOffManLastName ? ' relays it to ' + cutOffManLastName + ' who ' : '') + ' fires it to ' + appConstants.BASES_FOR_DISPLAY[firstThrowBase] + ' for the tag attempt on ' + firstThrowBaseRunnerLastName + (firstThrowBasePlay.runnerGoingBackToBase ? ' who did not tag up and is going back to base' : '') + '. The throw is ' :
+										firstThrowBaseRunnerLastName + (firstThrowBasePlay.runnerGoingBackToBase ? ' took off to ' + appConstants.BASES_FOR_DISPLAY_SHORTHAND[firstThrowBase + 1] + ' but has second thoughts about his chances and goes back to ' : ' tags up and makes his way to ') + 
+											appConstants.BASES_FOR_DISPLAY_SHORTHAND[firstThrowBase] + '. The throw in from ' + (fieldingResults.cutOffMan ? 'cutoff man ' + cutOffManLastName : fielderLastName) + ' to ' + appConstants.BASES_FOR_DISPLAY[firstThrowBase] + ' is ' ;
 
 									var playOnRunnerResultCall = ___.bool() ?
 										baseRunningResults.firstAttemptRunnerSafe ? ' not in time! ' : ' in time! ' :
@@ -252,7 +263,7 @@ module.exports = function(module){
 
 									//2ND TAG ATTEMPTS MADE AFTER CAUGHT BALL
 									if(doublePlayPossible && (baseRunningResults.secondAttemptRunnerSafe !== undefined)){
-										var playOn2ndRunnerAttemptCall = 'A second tag ' + (baseRunningResults.secondAttemptRunnerSafe ? 'possible' : 'made') + ' as ' + secondThrowBaseRunnerLastName + ' went to ' + appConstants.BASES_FOR_DISPLAY_SHORTHAND[secondThrowBase];
+										var playOn2ndRunnerAttemptCall = 'A second tag ' + (baseRunningResults.secondAttemptRunnerSafe ? 'possible' : 'made') + ' as ' + secondThrowBaseRunnerLastName + (secondThrowBasePlay.runnerGoingBackToBase ? ' did not tag up and tried to scramble back to ' : ' went to ') + appConstants.BASES_FOR_DISPLAY_SHORTHAND[secondThrowBase];
 										var playOn2ndRunnerResultCall = (baseRunningResults.secondAttemptRunnerSafe ? ' but the throw was not in time' : ' and the throw was in time') + '. ' + resultingStatus + '. ';
 									
 										playCallPartTwo += (playOn2ndRunnerAttemptCall + playOn2ndRunnerResultCall);
@@ -317,7 +328,7 @@ module.exports = function(module){
 								else if(___.bool() && (fieldingResults.baseBatterAdvancedTo === appConstants.GAME_PLAY.BASES[3].baseId)){
 									playCallPartTwo += ___.bool() ?
 										(numberOfPlayersScored ? 'An RBI triple' : 'Triple') + ' for ' + batter.lastName + '. Great hit and great base running. ' : 
-										(params.outs ? 'And a ' + appConstants.NUMBERS_WORDS_FOR_DISPLAY[params.outs] + '-out triple for ' + batter.lastName + ' here in the ' + params.inning + '. ' : offense.name + ' with a great scoring opportunity ' + (!resultingStatus ? ' with ' + appConstants.OUTS_FOR_DISPLAY[currentOuts] + '. ' : ''));
+										(params.outs ? 'And a ' + appConstants.NUMBERS_WORDS_FOR_DISPLAY[params.outs] + '-out triple for ' + batter.lastName + ' here in the ' + params.inning + '. ' : offense.name + ' has a great scoring opportunity' + (!resultingStatus ? ' with ' + appConstants.OUTS_FOR_DISPLAY[currentOuts] + '. ' : '. '));
 								}
 							}
 
@@ -355,7 +366,7 @@ module.exports = function(module){
 					
 					var swingAndMissCallTwo = ___.bool() ?
 						appConstants.STRIKE + ' ' + resultingStrikeCount + ' as ' + batter.lastName + ' whiffs on a ' + pitchTypeForCall + '. ' : 
-						(!battingResults.struckOutSwinging ? 'A ' + pitchTypeForCall + ' gets ' + batter.lastName + ' swinging. ' + ((params.balls === 3 && resultingStrikeCount === 2) ? 'Full count' : appConstants.BALLS_FOR_DISPLAY[params.balls] + '. ' + appConstants.STRIKES_FOR_DISPLAY[params.strikes + 1]) + '. ' : 
+						(!battingResults.struckOutSwinging ? 'A ' + pitchTypeForCall + ' gets ' + batter.lastName + ' swinging. ' + ((params.balls === 3 && resultingStrikeCount === 2) ? 'Full count' : appConstants.BALLS_FOR_DISPLAY[params.balls] + ', ' + appConstants.STRIKES_FOR_DISPLAY[params.strikes + 1]) + '. ' : 
 							pitcher.lastName + ' notches his ' + appConstants.NUMBERS_FOR_DISPLAY[pitcher.battersStruckOut] + ' K with a ' + pitchTypeForCall + ' ' + pitchLocationCall + '. ');
 					
 					var swingAndMissCallThree = battingResults.likelySwingAndMiss ? batter.lastName + ' goes down swinging on the pitch ' + pitchLocationCall + '. ' : 
@@ -388,6 +399,7 @@ module.exports = function(module){
 					});
 				}
 				else{
+					var noSwingPlayCall = '';
 
 					//CALLED STRIKE
 					if((battingResults.umpireCallOnNonSwing === appConstants.STRIKE)){
@@ -400,9 +412,9 @@ module.exports = function(module){
 							
 							var strikeLookingCallTwo = ___.bool() ?
 								'No swing on a ' + pitchVelocity + ' ' + pitchTypeForCall + ' ' + pitchLocationCall + ' for ' + appConstants.STRIKE + ' ' + resultingStrikeCount + '. ' :
-								capitalizedPitchType + ' thrown for a ' + appConstants.STRIKE + '. ' + appConstants.BALLS_FOR_DISPLAY[params.balls] + ', ' + appConstants.STRIKES_FOR_DISPLAY[params.strikes + 1] + '. ';
+								batter.firstName + ' is caught looking at the pitch thrown ' + pitchLocationCall + '. ' + appConstants.BALLS_FOR_DISPLAY[params.balls] + ', ' + appConstants.STRIKES_FOR_DISPLAY[params.strikes + 1] + '. ';
 
-							playCall += (___.bool() ? strikeLookingCallOne : strikeLookingCallTwo);
+							noSwingPlayCall += (___.bool() ? strikeLookingCallOne : strikeLookingCallTwo);
 						}
 
 						//BATTER STRUCK OUT LOOKING
@@ -411,7 +423,7 @@ module.exports = function(module){
 								batter.lastName + ' goes down on ' + appConstants.STRIKE + 's looking. ' + appConstants.OUTS_FOR_DISPLAY[resultingOutCount] + (resultingStatus ? ' here in the ' + params.inning : '') + '. ' : 
 								'3rd ' + appConstants.STRIKE + ' taken ' + pitchLocationCall + '. K number ' + pitcher.battersStruckOut + ' for ' + pitcher.lastName + '. ';
 						
-							playCall += strikeOutLookingCall;
+							noSwingPlayCall += strikeOutLookingCall;
 						}
 					}
 
@@ -425,14 +437,16 @@ module.exports = function(module){
 							batter.lastName + ' takes a ' + appConstants.BALL + ' ' + pitchLocationCall + '. ' :
 							pitcher.lastName + '\'s ' + pitchTypeForCall + ' misses for ' + appConstants.BALL + ' ' + resultingBallCount + '. ' ;
 
-						playCall += (___.bool() ? ballCallOne : ballCallTwo);
+						noSwingPlayCall += (___.bool() ? ballCallOne : ballCallTwo);
 					}
 
+					if(stealCall) playCallPartTwo += noSwingPlayCall
+					else playCall += noSwingPlayCall;
 				}
 			}
 			
-			if(pitch.pitcherChange){
-				generatePitcherChangePlayCall(___, pitch, playCallPartTwo);
+			if(pitcherChange){
+				playCallPartTwo += generatePitcherChangePlayCall(___, pitcherChange, defense);
 			}
 
 			//insert each new play at beginning so they latest show on top
@@ -452,16 +466,21 @@ module.exports = function(module){
 			return playByPlay;
 		}
 
-		function generatePitcherChangePlayCall(___, pitch, playCall){
-			//move play by play container down to accomodate pitcher(s) added
+		function generatePitcherChangePlayCall(___, pitcherChange, defense){
+			var inningsPitched = Math.floor(pitcherChange.takenOut.inningsPitched);
+			var partialInningsPitched = ('.' + gamePlayService.outs());
+			var inningWord = ((inningsPitched > 1) ? ' innings' : ' inning');
 
-			if(gamePlayService.getNumberOfPitchersBroughtIn() === 1) $('#playByPlayContainer').css('margin-top', '100px');
-			//a closer has been brought in
-			else $('#playByPlayContainer').css('margin-top', '140px');
+			var pitcherChangeCallOne = ___.bool() ?
+				'And ' + defense.name + ' calls it a day for ' + pitcherChange.takenOut.lastName + '. ' :
+				'That was the last pitch for ' + pitcherChange.takenOut.lastName + '. ' + pitcherChange.broughtIn.lastName + (pitcherChange.changeOnInningEnd ? ' will be on the mound next inning' : ' takes the mound') + ' for ' + defense.name + '. ';
+			
+			var pitcherChangeCallTwo = ___.bool() ?
+				(pitcherChange.dueToBadPerformance ? pitcherChange.takenOut.lastName + '\'s stuff is just not where it should be today and ' + defense.name + (pitcherChange.changeOnInningEnd ? ' will bring in ' + pitcherChange.broughtIn.lastName + ' next inning' : ' brings in ' + pitcherChange.broughtIn.lastName) + '. ' :
+					'And that\'s it for ' + pitcherChange.takenOut.lastName + ' after ' + inningsPitched + pitchConstants.PARTIAL_INNINGS_DISPLAY[partialInningsPitched] + inningWord + ' as ' + defense.name + ' will go to the bullpen. ') :
+				(pitcherChange.changeOnInningEnd ? pitcherChange.broughtIn.lastName + ' will be pitching next inning for ' + defense.name : 'And after a visit to the mound, ' + pitcherChange.broughtIn.lastName + ' comes in for ' + pitcherChange.takenOut.lastName) + '. ';
 
-			playCall += ___.bool() ?
-				'That was the last pitch for ' + pitch.pitcherChange.takenOut.lastName + '. ' + pitch.pitcherChange.broughtIn.lastName + ' will be on the mound next inning for ' + defense.name + '. ' :
-				defense.name + ' calls it a day for ' + pitch.pitcherChange.takenOut.lastName + '. ';
+			return (___.bool() ? pitcherChangeCallOne : pitcherChangeCallTwo);
 		}
 
 		function resetPlayByPlay(){

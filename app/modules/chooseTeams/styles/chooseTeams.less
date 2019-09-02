@@ -1,8 +1,8 @@
-@inner-infield-top: 273px;
+@inner-infield-top: 284px;
 @middle-reliever-top: 545px;
-@center-left: 311px;
+@center-left: 299px;
 @corner-infield-top: 379px;
-@corner-outfielder-top: 174px;
+@corner-outfielder-top: 180px;
 @bottom-top: 646px;
 
 .play-ball-button {
@@ -102,7 +102,7 @@
 			position: absolute;
 		    border-radius: 5px;
 		    height: 72px;
-		    width: 223px;
+		    min-width: 245px;
 		    text-align: right;
 		    font-family: sans-serif;
 		    padding: 0px 7px 0px 0px;
@@ -163,8 +163,6 @@
 		    }
 		}
 
-		//***PLAYER POSITIONING***
-
 		.starting-pitcher {
 			top: 415px;
     		left: @center-left;
@@ -192,17 +190,17 @@
 
 		.second-baseman {
 			top: @inner-infield-top;
-    		left: 460px;
+    		left: 450px;
 		}
 
 		.third-baseman {
 			top: @corner-infield-top;
-    		left: 50px;
+    		left: 32px;
 		}
 
 		.shortstop {
 			top: @inner-infield-top;
-    		left: 166px;
+    		left: 152px;
 		}
 
 		.left-fielder {
@@ -211,16 +209,14 @@
 		}
 
 		.center-fielder {
-		    top: 104px;
+		    top: 97px;
 		    left: @center-left;
 		}
 
 		.right-fielder {
 		    top: @corner-outfielder-top;
-		    left: 553px;
+		    left: 531px;
 		}
-
-		//***END PLAYER POSITIONING***
 
 		.player-hidden {
 			display: none;

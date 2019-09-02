@@ -294,7 +294,7 @@ module.exports = function(module){
 			//clear out batter results from last play
 			battingResults = {};			
 			
-			batter = gamePlayService.getBatter();;
+			batter = gamePlayService.getBatter();
 			pitch = _pitch;
 
 			var batterID = __.determineQualityOrBatterPitchID(batter.awareness, batter.consistency);
@@ -307,9 +307,7 @@ module.exports = function(module){
 			var contactLikelinessNum = __.getRandomDecimalInclusive(0, 100, 2);
 			var clearBases = false;
 			var advanceRunner = false;
-			var hitByPitchOrWalk = '';
-			//needed here so that next batter up (after updateCount) is not added to baseRunners in base running service
-			var hitOrWalkedBatter = gamePlayService.getBatter();
+			var hitByPitchOrWalk;
 
 			battingResults.batterPitchIdentification = batterID;
 			idDifference = Math.abs(batterID - pitch.pitchQuality);
@@ -396,7 +394,7 @@ module.exports = function(module){
 			}
 			//HBP
 			else{
-				gamePlayService.handleHitByPitch(hitOrWalkedBatter);
+				gamePlayService.handleHitByPitch(batter);
 				advanceRunner = gamePlayService.updateCount({plateAppearanceEnded : appConstants.HIT_BY_PITCH});
 				hitByPitchOrWalk = appConstants.HIT_BY_PITCH;
 			}
@@ -405,9 +403,9 @@ module.exports = function(module){
 				baseRunningService.setClearBases();
 			}
 			else if(advanceRunner){
-				baseRunningService.startBaseRunners(0, hitOrWalkedBatter);
+				baseRunningService.startBaseRunners(0, batter);
 				battingResults.hitByPitchOrWalk = true;
-				baseRunningService.handlePlayAction({hitByPitchOrWalk : hitByPitchOrWalk, batter : hitOrWalkedBatter});
+				baseRunningService.handlePlayAction({hitByPitchOrWalk : hitByPitchOrWalk, batter : batter});
 			}
 
 			return battingResults;

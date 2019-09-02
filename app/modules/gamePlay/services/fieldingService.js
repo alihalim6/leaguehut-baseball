@@ -39,7 +39,9 @@ module.exports = function(module){
 		}
 
 		function getDefender(_position){
-			return _.find(defenders, {position: _position});
+			return _.find(defenders, function(player){
+				return ((player.position === _position) && !player.inactive);
+			});
 		}
 
 		function sortByDistToFinal(a, b){
@@ -241,7 +243,9 @@ module.exports = function(module){
 			}
 
 			_.each(params.baseRunners, function(baseRunner){
-				var batter = (baseRunner.currentBase == 0) ? _.find(offense.players, {position: baseRunner.position}) : null;
+				var batter = (baseRunner.currentBase == 0) ? _.find(offense.players, function(player){
+						return ((player.position === baseRunner.position) && !player.inactive);
+					}) : null;
 
 				//if batter, evaluate home plate as current base just to have something in the array
 				//won't be used, as currentBase is evaluated for runner going back to tag up
@@ -288,12 +292,11 @@ module.exports = function(module){
 				var timeToBaseInfo = determineTimeToGetBallToBase(currentTime, params.fielder, params.throwFromXY,
 										[currentBase, nextBase, (baseRunner.baseAfterNext ? baseAfterNext : null), (baseRunner.threeBasesAhead ? threeBasesAhead : null)]);
 
-				var baseAdvancingToObj = 
-					baseRunningService.getBaseRunnerIsAdvancingTo(baseRunner, timeToBaseInfo, 
+				var baseAdvancingToObj =
+					baseRunningService.getBaseRunnerIsAdvancingTo(baseRunner, timeToBaseInfo,
 					{
-						airbornBall : airbornBall, 
-						ballCaught : ballCaught, 
-						timeToFielder : fieldingResults.currentTime
+						airbornBall : airbornBall,
+						ballCaught : ballCaught
 					});
 				
 				baseRunnerInFrontIsAdvTo.base = baseAdvancingToObj.baseRunnerIsAdvancingTo;
@@ -336,7 +339,7 @@ module.exports = function(module){
 							base : baseAdvancingToObj.baseRunnerIsAdvancingTo,
 							timeToBase : baseAdvancingToObj.timeToBase,
 							outGuarantee: (baseAdvancingToObj.timeToBase + timeToBaseObj.fielderDistanceFromBase + runnerDistanceFromBase),
-							outPriority: (outPriority + timeToBaseObj.fielderDistanceFromBase),
+							outPriority: (outPriority + runnerDistanceFromBase),
 							fielderDistanceFromBase: timeToBaseObj.fielderDistanceFromBase,
 							runnerGoingBackToBase : baseAdvancingToObj.runnerGoingBackToBase,
 							runnersProjectedRunningRate : baseRunner.projectedRunningRate,
@@ -360,15 +363,27 @@ module.exports = function(module){
 			});
 
 			if(potentialPlaysToBeMade.length){
+				var lessThanTwoOuts = (gamePlayService.outs() < 2);
 				fieldingResults.playToBeMadeOnRunner = true;
+
+				//favor bases to defense's left if infield defender
+				if(params.fielder.infield && lessThanTwoOuts){
+					_.each(potentialPlaysToBeMade, function(playToBeMade){
+						var baseNumber = (appConstants.GAME_PLAY.BASES[playToBeMade.base].baseNumber === 4 ? 2 : appConstants.GAME_PLAY.BASES[playToBeMade.base].baseNumber);
+						//multiply x by base number so that the lower the x, the higher the priority (e.g. SS should prioritize 2B over 1B to his left)
+						var baseXDelta = (appConstants.GAME_PLAY.BASES[playToBeMade.base].x * baseNumber);
+
+						playToBeMade.fielderBaseXDifference = (params.fielder.xOnPlay - baseXDelta);
+						//playToBeMade.outGuarantee += playToBeMade.fielderBaseXDifference;
+						playToBeMade.outPriority += playToBeMade.fielderBaseXDifference;
+					});
+				}
 
 				//now that all plays to be made have been collected, mark the force outs to give them highest priority
 				markForceOuts(potentialPlaysToBeMade, basesBeingAdvancedTo);
 
-				var sortProperty = ((gamePlayService.outs() < 2) ? 'outPriority' : 'outGuarantee');
+				var sortProperty = ((lessThanTwoOuts < 2) ? 'outPriority' : 'outGuarantee');
 				var potentialPlaysFirstOptionList = potentialPlaysToBeMade.slice();
-
-				//NOT 100% ON LOGIC
 				potentialPlaysFirstOptionList = _.sortBy(potentialPlaysFirstOptionList, ['forceOut', sortProperty]);
 				potentialPlaysToBeMade = _.sortBy(potentialPlaysToBeMade, ['forceOut', 'outGuarantee']);
 
@@ -472,7 +487,6 @@ module.exports = function(module){
 		function handleFieldedBall(playerAttemptingToField){
 			var caughtFor3rdOut = false;
 			var timeToEvent = fieldingResults.timeToEvent;
-			var updateOutsOnly = false;
 			var baseRunners;
 
 			if(battingResults.battedBallType !== battingConstants.BATTED_BALL_TYPES.GROUND_BALL){
@@ -484,7 +498,6 @@ module.exports = function(module){
 				}
 
 				fieldingResults.currentTime = timeToEvent;
-				updateOutsOnly = true;
 
 				//caught ball
 				//remove batter from baserunners, then throw ball in with most up to date base runners returned from baseRunners()
@@ -494,7 +507,6 @@ module.exports = function(module){
 
 				baseRunningService.handlePlayAction({
 					hitBallCaught : true, 
-					fieldingResults : fieldingResults, 
 					runnersPosition : batter.position
 				});
 				
@@ -506,7 +518,7 @@ module.exports = function(module){
 						throwFromXY : fieldingResults.eventXY, 
 						currentTime : 0, 
 						fielder : playerAttemptingToField, 
-						updateOutsOnly : updateOutsOnly, 
+						updateOutsOnly : true, 
 						outsBeforePlay : outsBeforePlay
 					});
 				}
@@ -518,7 +530,7 @@ module.exports = function(module){
 					throwFromXY : fieldingResults.eventXY, 
 					currentTime : timeToEvent, 
 					fielder : playerAttemptingToField, 
-					updateOutsOnly : updateOutsOnly
+					updateOutsOnly : false
 				});
 			}	
 		}

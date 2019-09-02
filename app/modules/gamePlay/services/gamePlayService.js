@@ -25,7 +25,7 @@ module.exports = function(module){
 		var gameOver = false;
 
 		var indecesUpdated = false;
-		var pitchersBroughtIn = 0;
+		var pendingPitcherChange;
 
 		var api = {
 			outs: outs,
@@ -56,8 +56,9 @@ module.exports = function(module){
 			gameIsOver: gameIsOver,
 			handleLOB: handleLOB,
 			handleGIDP: handleGIDP,
-			updateOffenseAndDefense: updateOffenseAndDefense,
-			getNumberOfPitchersBroughtIn: getNumberOfPitchersBroughtIn,
+			checkForPitcherChange: checkForPitcherChange,
+			handlePitcherChange: handlePitcherChange,
+			getPitcherChange: getPitcherChange,
 			handleError: handleError,
 			resetGame: resetGame
 		}
@@ -118,7 +119,7 @@ module.exports = function(module){
 
 		function getPitcher(){
 			return _.find(defense.players, function(player){
-				return (player.position === appConstants.GAME_PLAY.POSITIONS.PITCHER && player.active);
+				return ((player.position === appConstants.GAME_PLAY.POSITIONS.PITCHER) && player.active);
 			});
 		}
 
@@ -198,16 +199,20 @@ module.exports = function(module){
 			var pitcher = getPitcher();
 
 			outCount++;
+			pitcher.inningsPitched = parseFloat((pitcher.inningsPitched + 0.1).toFixed(1)); //needed since JS sometimes generates a bunch of decimals after
+
+			console.log('innings pitched pre: ' + pitcher.inningsPitched);
+
+			//whole inning pitched
+			if((pitcher.inningsPitched + 0.7) / Math.ceil(pitcher.inningsPitched) === 1) pitcher.inningsPitched = Math.ceil(pitcher.inningsPitched);
+
+			console.log('innings pitched post: ' + pitcher.inningsPitched);
 
 			if(outCount === 3){
 				outCount = 0;
 				inningChanging = true;
-				pitcher.inningsPitched = Math.ceil(pitcher.inningsPitched);
 
 				updateInning();
-			}
-			else{
-				pitcher.inningsPitched = parseFloat((pitcher.inningsPitched + 0.1).toFixed(1)); //needed since JS sometimes generates a bunch of decimals after
 			}
 
 			return inningChanging;
@@ -218,6 +223,7 @@ module.exports = function(module){
 			var batter = getBatter();
 
 			pitcher.battersWalked++;
+			pitcher.walksAllowedByInning[Math.floor(inningCount)]++;
 			batter.walks++;
 			offense.battingTotals.totalWalks++;
 		}
@@ -293,6 +299,7 @@ module.exports = function(module){
 
 			batter.hitByPitch++;
 			pitcher.battersHitByPitch++;
+			pitcher.walksAllowedByInning[inning]++;
 		}
 
 		function handleSteal(player, succeeded){
@@ -319,7 +326,7 @@ module.exports = function(module){
 				offense.batting[stat].push(player.statDisplay[stat]);
 			}
 			else{
-				var existingStatIndex = offense.batting[stat].indexOf(player[stat]);
+				var existingStatIndex = offense.batting[stat].indexOf(player.statDisplay[stat]);
 				player.statDisplay[stat] = (prefix + player[stat] + suffix);
 				offense.batting[stat].splice(existingStatIndex, 1, player.statDisplay[stat]);
 			}
@@ -331,11 +338,16 @@ module.exports = function(module){
 			if((inningCount >= 9.5) && ((inningCount % 1) > 0) && (homeTeam.battingTotals.totalRuns > awayTeam.battingTotals.totalRuns)){
 				inningEnded = true;
 				gameOver = true;
+				pendingPitcherChange = null;
 			}
 		}
 
 		function updateScore(runnersScoring, isHomeRun, batter, runnersOnBeforePlay){
 			var pitcher = getPitcher();
+			var offensesPitcher = _.find(offense.players, function(player){
+				return ((player.position === appConstants.GAME_PLAY.POSITIONS.PITCHER) && !player.inactive);
+			});
+
 			var multiPlayerScore = Array.isArray(runnersScoring);
 			var soloHR = (isHomeRun && !multiPlayerScore);
 			var multiRunHR = (isHomeRun && multiPlayerScore);
@@ -346,8 +358,12 @@ module.exports = function(module){
 
 			if(isHomeRun){
 				pitcher.hitsAllowed++;
+				pitcher.hitsAllowedByInning[inning]++;
 				pitcher.homeRunsAllowed++;
+				pitcher.homeRunsAllowedByInning[inning]++;
 				pitcher.runsAllowed++;
+				pitcher.runsAllowedByInning[inning]++;
+				
 
 				batter.hits++;
 				batter.totalBases += 4;
@@ -368,20 +384,35 @@ module.exports = function(module){
 			//add in the runs from players that were on base
 			if(multiPlayerScore){
 				_.each(runnersScoring, function(runner){
-					var player = _.find(offense.players, {position: runner.position});
+					var player = _.find(offense.players, function(player){
+						return ((player.position === runner.position) && !player.inactive);
+					});
+
 					player.runs++;
 					player.gameStatLine = __.generatePlayerGameStatLine(player);
 					pitcher.runsAllowed++;
+					pitcher.runsAllowedByInning[inning]++;
 					offense.battingTotals.totalRuns++;
 				});
 			}
 			else{
-				var player = _.find(offense.players, {position: runnersScoring.position});
+				var player = _.find(offense.players, function(player){
+					return ((player.position === runnersScoring.position) && !player.inactive);
+				});
+
 				player.runs++;
 				player.gameStatLine = __.generatePlayerGameStatLine(player);
 				pitcher.runsAllowed++;
+				pitcher.runsAllowedByInning[inning]++;
 				offense.battingTotals.totalRuns++;
 			}
+
+			//only count deficit against P while he is in game
+			defense.currentPitcherScoreDeficit[pitcher.id] += runsScored;
+
+			if(!offense.currentPitcherScoreDeficit[offensesPitcher.id]) offense.currentPitcherScoreDeficit[offensesPitcher.id] = 0;
+
+			offense.currentPitcherScoreDeficit[offensesPitcher.id] -= runsScored;
 
 			checkForGameEnd();
 		}
@@ -474,6 +505,7 @@ module.exports = function(module){
 			var baseBatterAdvancedTo = params.baseBatterAdvancedTo;
 			var runnersOnBeforePlay = params.runnersOnBeforePlay;
 			var inTheParkHR = params.inTheParkHR;
+			var inning = Math.floor(inningCount);
 
 			var potentialHit = false;
 			var creditHit = false;
@@ -519,6 +551,7 @@ module.exports = function(module){
 					batter.totalBases++;
 					batter.hits++;
 					pitcher.hitsAllowed++;
+					pitcher.hitsAllowedByInning[inning]++;
 					offense.battingTotals.totalHits++;
 					creditHit = true;
 				}
@@ -527,6 +560,7 @@ module.exports = function(module){
 					batter.totalBases += 2;
 					batter.hits++;
 					pitcher.hitsAllowed++;
+					pitcher.hitsAllowedByInning[inning]++;
 					pitcher.doublesAllowed++;
 					offense.battingTotals.totalHits++;
 					recordStatForTeamDisplay(batter, appConstants.STATS_DISPLAY.DOUBLES);
@@ -537,6 +571,7 @@ module.exports = function(module){
 					batter.totalBases += 3;
 					batter.hits++;
 					pitcher.hitsAllowed++;
+					pitcher.hitsAllowedByInning[inning]++;
 					pitcher.triplesAllowed++;
 					offense.battingTotals.totalHits++;
 					recordStatForTeamDisplay(batter, appConstants.STATS_DISPLAY.TRIPLES);
@@ -547,6 +582,7 @@ module.exports = function(module){
 					batter.totalBases += 4;
 					batter.hits++;
 					pitcher.hitsAllowed++;
+					pitcher.hitsAllowedByInning[inning]++;
 					offense.battingTotals.totalHits++;
 					creditHit = true;
 				}
@@ -581,59 +617,56 @@ module.exports = function(module){
 			recordStatForTeamDisplay(batter, appConstants.STATS_DISPLAY.GIDP);
 		}
 
-		function handlePitcherChange(){
+		function changePitcher(pitcherBroughtIn){
 			var pitcher = getPitcher();
-			var newPitcher;
 
 			pitcher.active = false;
 			pitcher.inactive = true;
-
-			if(pitcher.pitcherTypeToFollow === appConstants.GAME_PLAY.POSITIONS.MR){
-				newPitcher = _.find(defense.players, {isMiddleReliever: true});
-
-				//only increment once (playByPlayService only needs to know when there has been a MR and then closer brought in)
-				if(!pitchersBroughtIn) pitchersBroughtIn++;
-			}
-			else{
-				newPitcher = _.find(defense.players, {isCloser: true});
-				pitchersBroughtIn++;
-			}
-
-			newPitcher.active = true;
-			newPitcher.inactive = false;
-
-			return {
-				takenOut: pitcher,
-				broughtIn: newPitcher
-			};
+			pitcherBroughtIn.active = true;
+			pitcherBroughtIn.inactive = false;
 		}
 
-		function updateOffenseAndDefense(){
+		function checkForPitcherChange(inningOnPlay){
 			var pitcher = getPitcher();
-			var pitcherChange;
-			var changePitcher = false;
+			var newPitcher;
+			var changePitcherEvaluation;
 
-			//check if should change pitcher
 			if(pitcher.active && !gameOver){
-				if(typeof pitcher.takePitcherOut === 'function'){
-					changePitcher = pitcher.takePitcherOut(inningCount, defense);
-				}
-				else{
-					changePitcher = pitcher.takePitcherOut;
-				}
+				changePitcherEvaluation = pitcher.takePitcherOut({
+					inning: inningOnPlay,
+					defense: defense,
+					currentOuts: outCount,
+					inningEnded: inningEnded
+				});
+				
+				if(changePitcherEvaluation.makeChange){
+					if(pitcher.pitcherTypeToFollow === appConstants.GAME_PLAY.POSITIONS.MR){
+						newPitcher = _.find(defense.players, {isMiddleReliever: true});
+					}
+					else{
+						newPitcher = _.find(defense.players, {isCloser: true});
+					}
 
-				if(changePitcher){
-					pitcherChange = handlePitcherChange();
+					pendingPitcherChange = {
+						takenOut: pitcher,
+						broughtIn: newPitcher,
+						changeOnInningEnd: changePitcherEvaluation.changeOnInningEnd,
+						dueToBadPerformance: changePitcherEvaluation.dueToBadPerformance
+					};
 				}
 			}
-
-			setField(defense, offense);
-
-			return pitcherChange;
 		}
 
-		function getNumberOfPitchersBroughtIn(){
-			return pitchersBroughtIn;
+		function handlePitcherChange(){
+			//if there is a pitcher change waiting to happen, execute it then clear it out
+			if(pendingPitcherChange){
+				changePitcher(pendingPitcherChange.broughtIn);
+				pendingPitcherChange = null;
+			}
+		}
+
+		function getPitcherChange(){
+			return pendingPitcherChange;
 		}
 
 		function handleError(defender){
@@ -647,8 +680,9 @@ module.exports = function(module){
 			outCount = 0;
 			inningCount = 1.0;
 			inningEnded = false;
+			gameOver = false;
 			indecesUpdated = false;
-			pitchersBroughtIn = 0;
+			pendingPitcherChange = null;
 		}
 	}
 }

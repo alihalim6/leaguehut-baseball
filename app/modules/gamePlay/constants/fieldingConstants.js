@@ -43,7 +43,7 @@ module.exports = function(module){
 		THROW_VELOCITY_CF : 91,
 
 		TIME_DIFF_FOR_PROJECTED_BASE_REACH : 0.75,
-		DIST_DIFF_FOR_PROJECTED_BASE_REACH : 2.75,
+		DIST_DIFF_FOR_PROJECTED_BASE_REACH : 2,
 
 		MAX_FIELDING_CHANCE_FOR_ERROR: 90,
 
@@ -64,10 +64,10 @@ module.exports = function(module){
 
 		HIT_SECTIONS_FOR_DISPLAY_SHORTHAND : {
 			L: 'to the left',
-			LC: 'to center left',
+			LC: 'center left',
 			R: 'to the right',
-			RC: 'to center right',
-			C: 'center'
+			RC: 'center right',
+			C: (chance.bool() ? 'straight ahead' : 'center')
 		},
 
 		DIFFICULT_FIELD_OUT_MAX_CHANCE : 33,

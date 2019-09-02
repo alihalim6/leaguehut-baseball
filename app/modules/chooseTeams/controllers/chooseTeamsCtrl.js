@@ -1,9 +1,9 @@
 module.exports = function(module){
 	module.controller('chooseTeamsCtrl', chooseTeamsCtrl);
 
-	chooseTeamsCtrl.$inject = ['$scope', 'teamsService', 'appConstants'];
+	chooseTeamsCtrl.$inject = ['$scope', 'teamsService', 'appConstants', 'baseRunningService', 'playByPlayService', 'gamePlayService'];
  
-	function chooseTeamsCtrl($scope, teamsService, appConstants){
+	function chooseTeamsCtrl($scope, teamsService, appConstants, baseRunningService, playByPlayService, gamePlayService){
 		teamsService.getAllTeams().then(function(teams){
 			$scope.teams = teams;
 			$scope.chosenTeams = [];
@@ -31,63 +31,65 @@ module.exports = function(module){
 				});
 			});
 
-			$(document).ready(function(){
-				$scope.bullpenToggle = appConstants.BULLPEN_INITIAL_TOGGLE;
-
-				$('.choose-teams-carousel').slick({
-			    	dots: true,
-			    	autoplay: false,
-			    	slidesToShow: 1
-		  		});
-
-		  		$scope.gameTeams = [];
-
-		  		//allow modal to be shared with gamePlay component ($ctrl syntax)
-		  		$scope.$ctrl = {
-		  			closePlayerInfoModal: function(playerId){
-						//clear out headshot if click on different player than previous; otherwise, new one is appended
-						if($scope.$ctrl.playerInfo && playerId && (playerId !== $scope.$ctrl.playerInfo.playerId)){
-							$('.player-info-modal').find('.face').remove();
-						}
-
-						$(getPlayerInfoModalId()).hide();
-					},
-					determineBarDisplay: function(team, playerId, skillRating){
-						if(typeof team === 'number'){
-							team = _.find($scope.teams, {id: team});
-						}
-
-						var player = _.find(team.players, {id: playerId});
-						var overallRatingNumerator = (player.awareness + player.consistency + player.hitPower + player.throwPower);
-						overallRatingNumerator += player.infield ? 0 : player.runSpeed;
-						var overallRatingDenominator = player.infield ? 4 : 5;
-
-						if(player.position === 'P'){
-							overallRatingNumerator += (player.fastball + player.breakingBall + player.changeup);
-							overallRatingDenominator += 3;
-						}
-
-						var overallRating = (overallRatingNumerator / overallRatingDenominator);
-						
-						if(skillRating){
-							skillRating = player[_.camelCase(skillRating)];
-						}
-
-						var rating = Math.floor(skillRating || overallRating);
-				
-						return {
-							width: rating + 'px',
-							background: 'linear-gradient(to right, #b20000 0%, #039b30 ' + (100 - rating) + '%, #039b30 100%)'
-						}
-					}
-		  		};
-
-		  		///////////////////////////////
-				$scope.gameTeams[0] = _.find($scope.teams, {id: 6});//1 - RH batter; 2-LH
-				$scope.gameTeams[1] = _.find($scope.teams, {id: 9});//9 - RH pitcher; 10-LH
-				$scope.gameInProgress = true;
-			});	
+			$(document).ready(initializeSlides);
 		});
+
+		function initializeSlides(){
+			$scope.bullpenToggle = appConstants.BULLPEN_INITIAL_TOGGLE;
+
+			$('.choose-teams-carousel').slick({
+		    	dots: true,
+		    	autoplay: false,
+		    	slidesToShow: 1
+	  		});
+
+	  		$scope.gameTeams = [];
+
+	  		//allow modal to be shared with gamePlay component ($ctrl syntax)
+	  		$scope.$ctrl = {
+	  			closePlayerInfoModal: function(playerId){
+					//clear out headshot if click on different player than previous; otherwise, new one is appended
+					if($scope.$ctrl.playerInfo && playerId && (playerId !== $scope.$ctrl.playerInfo.playerId)){
+						$('.player-info-modal').find('.face').remove();
+					}
+
+					$(getPlayerInfoModalId()).hide();
+				},
+				determineBarDisplay: function(team, playerId, skillRating){
+					if(typeof team === 'number'){
+						team = _.find($scope.teams, {id: team});
+					}
+
+					var player = _.find(team.players, {id: playerId});
+					var overallRatingNumerator = (player.awareness + player.consistency + player.hitPower + player.throwPower);
+					overallRatingNumerator += player.infield ? 0 : player.runSpeed;
+					var overallRatingDenominator = player.infield ? 4 : 5;
+
+					if(player.position === 'P'){
+						overallRatingNumerator += (player.fastball + player.breakingBall + player.changeup);
+						overallRatingDenominator += 3;
+					}
+
+					var overallRating = (overallRatingNumerator / overallRatingDenominator);
+					
+					if(skillRating){
+						skillRating = player[_.camelCase(skillRating)];
+					}
+
+					var rating = Math.floor(skillRating || overallRating);
+			
+					return {
+						width: rating + 'px',
+						background: 'linear-gradient(to right, #b20000 0%, #039b30 ' + (100 - rating) + '%, #039b30 100%)'
+					}
+				}
+	  		};
+
+	  		///////////////////////////////
+			//$scope.gameTeams[0] = _.find($scope.teams, {id: 9});//1 - RH batter; 2-LH
+			//$scope.gameTeams[1] = _.find($scope.teams, {id: 6});//9 - RH pitcher; 10-LH
+			//$scope.gameInProgress = true;
+		}
 
 		function getPlayerInfoModalId(){
 			return ($scope.gameInProgress ? '#playerInfoGamePlay' : '#playerInfoChooseTeams');
@@ -166,16 +168,23 @@ module.exports = function(module){
 			$scope.gameTeams = [];
 			$scope.gameTeams[0] = _.find($scope.teams, {id: $scope.chosenTeams[0].id});
 			$scope.gameTeams[1] = _.find($scope.teams, {id: $scope.chosenTeams[1].id});
-			$scope.gameInProgress = true;
 
-			//reset team selection screen so it displays fresh if user closes game
-			$('.choose-teams-carousel').slick('slickGoTo', 0, true);
-			$scope.chosenTeams = [];
-			$scope.teamChosen = {};
+			baseRunningService.clearBases();
+			playByPlayService.resetPlayByPlay();
+			gamePlayService.resetGame();
+
+			$scope.gameInProgress = true;
 		}
 
 		$scope.$watch('gameInProgress', function(value){
 			$scope.gameInProgress = value;
+
+			//reset view after game is closed
+			if(!value){
+				initializeSlides();
+				$scope.chosenTeams = [];
+				$scope.teamChosen = {};
+			}
 		});
 	}
 }

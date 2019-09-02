@@ -228,9 +228,8 @@ module.exports = function(module){
 				baseRunners[i].baseAfterNext = baseAfterNext;
 				baseRunners[i].threeBasesAhead = threeBasesAhead;
 
-				//TO DO: ADD DISTANCE FOR STARTING TO RUN AS PITCH THROWN
-				//LARGER LEAD OFF ON 3RD WITH L PITCHER, E.G.
-				var leadOffDistance = __.getRandomIntInclusive(baseRunningConstants.BASE_RUNNING_SPEED_MULTIPLIER, baseRunningConstants.BASE_RUNNING_SPEED_MULTIPLIER);
+				//TODO: LARGER LEAD OFF ON 3RD WITH L PITCHER, E.G.
+				var leadOffDistance = __.getRandomIntInclusive(baseRunningConstants.BASES_LEAD_OFF_DISTANCE_MIN, baseRunningConstants.BASES_LEAD_OFF_DISTANCE_MAX);
 				baseRunners[i].leadOffDistance = leadOffDistance;
 				var currentDistance = (appConstants.GAME_PLAY.BASES[currentBase].distance + leadOffDistance);
 				baseRunners[i].currentDistance = currentDistance;
@@ -324,7 +323,6 @@ module.exports = function(module){
 				updateBaseRunners({
 					attemptedBase : 0,
 					action : appConstants.REMOVE, 
-					fieldingResult : params.fieldingResult, 
 					runnersPosition : params.runnersPosition
 				});
 			}
@@ -340,9 +338,9 @@ module.exports = function(module){
 
 		//TO DO: ACCOUNT FOR WHERE BALL IS HIT
 		//WON'T ALWAYS BE SPRINTING TO NEXT BASE/BACK TO BASE
-		function handleRunnerOnAirbornBall(baseRunner, fieldingResult, outsBeforePlay){
-			var avgChancePerc = (fieldingResult.chance * fieldingConstants.AIRBORN_BALL_MULTIPLIER);
-			var finalChancePerc = (fieldingResult.finalChanceOfFielding * fieldingConstants.AIRBORN_BALL_MULTIPLIER);
+		function handleRunnerOnAirbornBall(baseRunner, fieldingResults, outsBeforePlay){
+			var avgChancePerc = (fieldingResults.chance * fieldingConstants.AIRBORN_BALL_MULTIPLIER);
+			var finalChancePerc = (fieldingResults.finalChanceOfFielding * fieldingConstants.AIRBORN_BALL_MULTIPLIER);
 			var delta = 0;
 
 			if(baseRunner.currentBase == 0){
@@ -352,19 +350,19 @@ module.exports = function(module){
 			}
 
 			//runner goes from leadoff distance already set, at time of hit
-			if(fieldingResult.chance === 0){
+			if(fieldingResults.chance === 0){
 				baseRunner.startRunningTime = 0;
 				baseRunner.runningToNextBase = true;
 			}
 			else{
 				if(outsBeforePlay < 2){
-					var prelimMoveBackTowardBase = (__.getRandomDecimalInclusive(0, 100, 1) <= fieldingResult.chance) || (fieldingResult.chance === 100);
+					var prelimMoveBackTowardBase = (__.getRandomDecimalInclusive(0, 100, 1) <= fieldingResults.chance) || (fieldingResults.chance === 100);
 					var multiplier = (prelimMoveBackTowardBase ? avgChancePerc : (1.0 - avgChancePerc));
 					var distanceTowardBase = (prelimMoveBackTowardBase ? baseRunner.leadOffDistance : ((90 - baseRunner.leadOffDistance) * multiplier));
 					var rateMovedToThatDistance = (baseRunner.actualRunningRate * multiplier);
 					var timeTakenToGetToDistance = (distanceTowardBase / rateMovedToThatDistance);
-					var runToNextBase = (__.getRandomDecimalInclusive(0, 100, 1) > fieldingResult.finalChanceOfFielding) || (fieldingResult.chance < 100);
-					var startRunningTime = (fieldingResult.timeToEvent * finalChancePerc);
+					var runToNextBase = (__.getRandomDecimalInclusive(0, 100, 1) > fieldingResults.finalChanceOfFielding) || (fieldingResults.chance < 100);
+					var startRunningTime = (fieldingResults.timeToEvent * finalChancePerc);
 
 					//if started running to wherever runner is running before got to prelim distance, set distance to wherever runner is at that time
 					//else, set distance to that prelim distance (i.e. gets to that distance then starts running at whatever the start running time is)
@@ -386,12 +384,12 @@ module.exports = function(module){
 
 					//default to existing current distance; only add delta if going back to base
 					//if they keep going, BAU (start time 0, started running from existing current distance)
-					var directionDecisionTime = (fieldingResult.timeToEvent * finalChancePerc);
+					var directionDecisionTime = (fieldingResults.timeToEvent * finalChancePerc);
 
 					//no use in tagging with 2 outs if think it will be caught anyway...
 					var runToNextBase = true;
 
-					var timeBeforeCatch = (fieldingResult.timeToEvent - directionDecisionTime);
+					var timeBeforeCatch = (fieldingResults.timeToEvent - directionDecisionTime);
 					var distanceCoveredBeforeCatch = (timeBeforeCatch * baseRunner.actualRunningRate);
 					var delta = (baseRunner.leadOffDistance + (directionDecisionTime * baseRunner.actualRunningRate));
 
@@ -443,9 +441,6 @@ module.exports = function(module){
 				if(params.ballCaught){
 					var distanceToTagUp = (90 - baseRunner.distanceFromNextBase);
 					var timeToTagUp = timeToTagUpBase;
-
-					//timeToFielder: if ball was caught, time to base was timed from 0, so have to add back in the time to fielder before subtracting start running time
-
 					var projectedTimeToReachTagUpBase = (distanceToTagUp / baseRunner.actualRunningRate);
 					projectedReachTimeThrowTimeDiff = (projectedTimeToReachTagUpBase - timeToTagUp);
 

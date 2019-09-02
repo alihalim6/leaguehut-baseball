@@ -8,7 +8,7 @@
 	player-info="$ctrl.playerInfo">
 </game-play>
 
-<div ng-hide="gameInProgress">
+<div ng-if="!gameInProgress">
 	<player-info-modal class="player-info-modal-container" id="playerInfoChooseTeams"></player-info-modal>
 
 	<div class="app-welcome">

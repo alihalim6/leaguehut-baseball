@@ -5,7 +5,6 @@
 @pitcher-silhouette-background-size: 106px;
 @batter-silhouette-background-size: 198px;
 @small-player-cap-width: 16.5px;
-@current-batter-width: 250px;
 
 @strike-zone-ball-size: 12px;
 @called-ball-color: #ff0000;
@@ -18,7 +17,19 @@
 .game-play {
 	min-width: 1400px;
 	max-width: 1600px;
+	height: 100%;
 	margin: 0 auto;
+}
+
+@keyframes begin-game {
+	from {opacity: 0;}
+	to {opacity: 1;}
+}
+
+@keyframes in-game-transition {
+	0% {opacity: 1;}
+	50% {opacity: 0;}
+	100% {opacity: 1;}
 }
 
 .end-game-x-icon {
@@ -98,7 +109,7 @@
 	    width: 200px;
 	    text-align: right;
 	    font-family: sans-serif;
-	    padding: 0px 7px 0px 70px;
+	    padding: 0px 15px 0px 78px;
 	    background-color: #FFFFFF;
 	    box-shadow: 1px 1px 4px 3px lightgrey;
 	    cursor: pointer;
@@ -163,7 +174,8 @@
 	.current-batter {
 		top: 418px;
 		left: @current-batter-alignment;
-		width: @current-batter-width;
+		width: auto;
+		min-width: 180px;
 
 		.game-stats {
 		    top: 39px;
@@ -445,12 +457,13 @@
 
 .pitcher-box-score {
 	margin-top: 5px;
-	position: absolute;
 }
 
+
 .play-by-play-container {
-	margin-top: 50px;
 	font-family: sans-serif;
+	position: relative;
+	top: -28px;
 
 	.header {
 		text-align: center;

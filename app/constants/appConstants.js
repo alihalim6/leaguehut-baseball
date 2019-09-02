@@ -171,7 +171,7 @@ module.exports = function(module){
 					baseNumber : 1,
 					baseId: '1B',
 					baseName: '1st',
-					outPriority: 50
+					outPriority: 1
 				},
 				'2' : {
 					x : 200,
@@ -180,7 +180,7 @@ module.exports = function(module){
 					baseNumber : 2,
 					baseId: '2B',
 					baseName: '2nd',
-					outPriority: 20
+					outPriority: 10
 				},
 				'3' : {
 					x : 136.4,
@@ -189,7 +189,7 @@ module.exports = function(module){
 					baseNumber : 3,
 					baseId: '3B',
 					baseName: '3rd',
-					outPriority: 5
+					outPriority: 20
 				},
 				'4' : {
 					x : 200,
@@ -203,10 +203,13 @@ module.exports = function(module){
 			},
 
 			PAUSE_BETWEEN_PLAYS: 3000,
-			PAUSE_ON_INNING_END: 1200,
-
+			PAUSE_ON_INNING_PA_END: 2000,
+			PAUSE_FOR_PLAY_BY_PLAY: 530,
+			INNING_END_TRANSITION_TIME: 3000,
+			SHORT_TRANSITION_TIME: 2000,
 			PITCH_RESULTING_COUNT_ANIMATION_TIME: 2000,
 			PITCH_ANIMATION_PA_PITCH_NUMBER_TIME: 500,
+
 			STRIKE_ZONE_BALL_SIZE: 13,
 			STRIKE_ZONE_BALL_POSITION_DIVIDER: 2,
 			STRIKE_ZONE_BALL_COLORS: {

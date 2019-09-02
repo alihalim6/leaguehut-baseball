@@ -3,37 +3,33 @@ module.exports = function(module){
 		MIN_TOP: 20,
 		MAX_TOP: 252,
 		MIN_LEFT: 22,
-		MAX_LEFT_LEFT: 75,
-		MIN_LEFT_RIGHT: 228,
+		MAX_LEFT_LEFT: 70,
+		MIN_LEFT_RIGHT: 232,
 		MAX_LEFT: 278,
 
-		MAX_TOP_HIGH: 48,
-		MIN_TOP_UP: 49,
+		MAX_TOP_HIGH: 47,
+		MIN_TOP_UP: 48,
 		MAX_TOP_UP: 109,
 		MIN_TOP_MID: 110,
 		MAX_TOP_MID: 170,
 		MIN_TOP_DOWN: 171,
-		MAX_TOP_DOWN: 231,
-		MIN_TOP_LOW: 232,
+		MAX_TOP_DOWN: 228,
+		MIN_TOP_LOW: 229,
 		MAX_TOP_LOW: 252,
 
-		MIN_LEFT_CENTER_LEFT: 73,
+		MIN_LEFT_CENTER_LEFT: 71,
 		MAX_LEFT_CENTER_LEFT: 125,
 
 		MIN_LEFT_CENTER: 126,
 		MAX_LEFT_CENTER: 176,
 
 		MIN_LEFT_CENTER_RIGHT: 177,
-		MAX_LEFT_CENTER_RIGHT: 227,
+		MAX_LEFT_CENTER_RIGHT: 231,
 
-		MIN_TOP_FOR_UP_MISCALLED_BALL: 48,
-		MAX_TOP_FOR_UP_MISCALLED_BALL: 76,
-		MIN_TOP_FOR_DOWN_MISCALLED_BALL: 196,
-		MAX_TOP_FOR_DOWN_MISCALLED_BALL: 226,
-		MIN_LEFT_FOR_RIGHT_MISCALLED_BALL: 196,
-		MAX_LEFT_FOR_RIGHT_MISCALLED_BALL: 231,
-		MIN_LEFT_FOR_LEFT_MISCALLED_BALL: 71,
-		MAX_LEFT_FOR_LEFT_MISCALLED_BALL: 106
+		MAX_TOP_FOR_UP_MISCALLED_BALL: 62,
+		MIN_TOP_FOR_DOWN_MISCALLED_BALL: 210,
+		MIN_LEFT_FOR_RIGHT_MISCALLED_BALL: 210,
+		MAX_LEFT_FOR_LEFT_MISCALLED_BALL: 92
 	};
 
 	module.constant('pitchConstants', {
@@ -60,6 +56,18 @@ module.exports = function(module){
 		MIN_QUAL_FOR_HBP_CHECK : 0,
 		QUAL_HBP_MULTIPLIER : 0.04,
 
+		PERFORMANCE_WEIGHT : {
+			HR: 3,
+			HITS: 3,
+			RUNS_CURRENT_INNING: 5,
+			RUNS_PREV_INNINGS: 4,
+			DEFICIT: 4,
+			WALKS: 2
+		},
+
+		BAD_PERFORMANCE_MIN : 50,
+		BAD_PERFORMANCE_MAX : 100,
+
 		PITCH_TYPES : {
 			FASTBALL : 'FB',
 			SLIDER : 'SL',
@@ -73,6 +81,12 @@ module.exports = function(module){
 			SL : 'Slider',
 			CB : 'Curveball',
 			CU : 'Changeup'
+		},
+
+		PARTIAL_INNINGS_DISPLAY : {
+			'.0': '',
+			'.1': ' and 1/3',
+			'.2': ' and 2/3'
 		},
 
 		PITCH_TYPE_PERCENTAGES : {
@@ -98,8 +112,8 @@ module.exports = function(module){
 			SUO: 'up and away',
 			SUM: 'at the top of the zone',
 			SUI: 'up inside',
-			SCO: (chance.bool() ? 'a bit outside' : 'over the plate'),
-			SCI: (chance.bool() ? 'over the plate' : 'a bit inside'),
+			SCO: (chance.bool() ? 'a bit outside' : 'outside'),
+			SCI: (chance.bool() ? 'inside' : 'a bit inside'),
 			SDO: 'low and away',
 			SDM: 'at the bottom of the zone',
 			SDI: 'down inside'
@@ -108,7 +122,7 @@ module.exports = function(module){
 		PITCH_ANIMATION_MOVEMENT : {
 			FB: {
 				vertical: {
-					min: 0,
+					min: 3,
 					max: 18
 				},
 				horizontal: {
@@ -142,7 +156,7 @@ module.exports = function(module){
 					max: 16
 				},
 				horizontal: {
-					min: 0,
+					min: 4,
 					max: 14
 				}
 			}
@@ -182,20 +196,20 @@ module.exports = function(module){
 			{
 				locations: ['RSUI', 'RSUM', 'RSUO', 'LSUI', 'LSUM', 'LSUO'],
 				repositionLimit: PITCH_ANIMATION_GLOBAL.MAX_TOP_FOR_UP_MISCALLED_BALL,
-				zoneLimit: PITCH_ANIMATION_GLOBAL.MIN_TOP_FOR_UP_MISCALLED_BALL,
+				zoneLimit: PITCH_ANIMATION_GLOBAL.MIN_TOP_UP,
 				isGreaterThanLimit: true
 			},
 			//DOWN
 			{
 				locations: ['RSDI', 'RSDM', 'RSDO', 'LSDI', 'LSDM', 'LSDO'],
 				repositionLimit: PITCH_ANIMATION_GLOBAL.MIN_TOP_FOR_DOWN_MISCALLED_BALL,
-				zoneLimit: PITCH_ANIMATION_GLOBAL.MAX_TOP_FOR_DOWN_MISCALLED_BALL
+				zoneLimit: PITCH_ANIMATION_GLOBAL.MAX_TOP_DOWN
 			},
 			//R IN/L OUT
 			{
 				locations: ['RSCI', 'LSCO'],
 				repositionLimit: PITCH_ANIMATION_GLOBAL.MAX_LEFT_FOR_LEFT_MISCALLED_BALL,
-				zoneLimit: PITCH_ANIMATION_GLOBAL.MIN_LEFT_FOR_LEFT_MISCALLED_BALL,
+				zoneLimit: PITCH_ANIMATION_GLOBAL.MIN_LEFT_CENTER_LEFT,
 				repositionX: true,
 				isGreaterThanLimit: true
 			},
@@ -203,7 +217,7 @@ module.exports = function(module){
 			{
 				locations: ['RSCO', 'LSCI'],
 				repositionLimit: PITCH_ANIMATION_GLOBAL.MIN_LEFT_FOR_RIGHT_MISCALLED_BALL,
-				zoneLimit: PITCH_ANIMATION_GLOBAL.MAX_LEFT_FOR_RIGHT_MISCALLED_BALL,
+				zoneLimit: PITCH_ANIMATION_GLOBAL.MAX_LEFT_CENTER_RIGHT,
 				repositionX: true
 			}
 		],

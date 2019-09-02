@@ -65,7 +65,8 @@ module.exports = function(module){
     					nameAbbreviation: team.get('nameAbbreviation'),
                         atBatIndex: 0,
                         pitchersBroughtIn: 0,
-    					players: {}
+    					players: {},
+                        currentPitcherScoreDeficit: {}
     				};
 
     				playerList.forEach(function(player){
