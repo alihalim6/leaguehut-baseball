@@ -267,8 +267,6 @@ module.exports = function(module){
 					baseRunner.threeBasesAhead = 0;
 
 					nextBase = appConstants.GAME_PLAY.BASES[baseRunner.nextBase];
-
-					//console.log("the runner directly in front of runner whose next base is " + baseRunnerInFrontIsAdvTo.base + " is going to/staying at that base, so go no further than base " + baseRunner.nextBase);
 				}
 
 				//now check that runner does not try to go to base that runner in front of him is going to (i.e. further his than next base)
@@ -276,9 +274,6 @@ module.exports = function(module){
 				if((baseRunnerInFrontIsAdvTo.base < 4) && (baseRunnerInFrontIsAdvTo.base === baseRunner.baseAfterNext)){
 					baseRunner.baseAfterNext -= 1;
 					baseRunner.threeBasesAhead = 0;
-
-					//console.log("the runner directly in front of runner whose base after next is " + baseRunnerInFrontIsAdvTo.base + " is going to/staying at that base, so go no further than base " + baseRunner.baseAfterNext);
-
 				}
 
 				if((baseRunnerInFrontIsAdvTo.base < 4) && (baseRunnerInFrontIsAdvTo.base === baseRunner.threeBasesAhead)){
@@ -370,10 +365,11 @@ module.exports = function(module){
 				if(params.fielder.infield && lessThanTwoOuts){
 					_.each(potentialPlaysToBeMade, function(playToBeMade){
 						var baseNumber = (appConstants.GAME_PLAY.BASES[playToBeMade.base].baseNumber === 4 ? 2 : appConstants.GAME_PLAY.BASES[playToBeMade.base].baseNumber);
+						var throwFromX = (fieldingResults.finalDistanceBounceRollXY ? fieldingResults.finalDistanceBounceRollXY.x : fieldingResults.finalDistanceXY.x);
 						//multiply x by base number so that the lower the x, the higher the priority (e.g. SS should prioritize 2B over 1B to his left)
 						var baseXDelta = (appConstants.GAME_PLAY.BASES[playToBeMade.base].x * baseNumber);
 
-						playToBeMade.fielderBaseXDifference = (params.fielder.xOnPlay - baseXDelta);
+						playToBeMade.fielderBaseXDifference = (throwFromX - baseXDelta);
 						//playToBeMade.outGuarantee += playToBeMade.fielderBaseXDifference;
 						playToBeMade.outPriority += playToBeMade.fielderBaseXDifference;
 					});
@@ -385,7 +381,7 @@ module.exports = function(module){
 				var sortProperty = ((lessThanTwoOuts < 2) ? 'outPriority' : 'outGuarantee');
 				var potentialPlaysFirstOptionList = potentialPlaysToBeMade.slice();
 				potentialPlaysFirstOptionList = _.sortBy(potentialPlaysFirstOptionList, ['forceOut', sortProperty]);
-				potentialPlaysToBeMade = _.sortBy(potentialPlaysToBeMade, ['forceOut', 'outGuarantee']);
+				potentialPlaysToBeMade = _.sortBy(potentialPlaysToBeMade, ['forceOut', 'outPriority']);
 
 				fieldingResults.potentialPlaysFirstOptionList = potentialPlaysFirstOptionList;
 				fieldingResults.playsToBeMade = potentialPlaysToBeMade;
@@ -901,7 +897,6 @@ module.exports = function(module){
 
 
 				//make hit angle realistic (not random between 0-180)
-
 				fieldingResults.rawHitAngle = hitAngle;
 				hitAngle = __.convertToRadians(hitAngle);
 				fieldingResults.hitAngle = hitAngle;
@@ -916,14 +911,18 @@ module.exports = function(module){
 
 				//determine who goes after ball
 				//in order of closest to where it is going/will land
-				var min = fieldingConstants.DEFENSE_POSITIONING_MOVE_MIN;
-				var max = fieldingConstants.DEFENSE_POSITIONING_MOVE_MAX;
+
+				var minX = fieldingConstants.DEFENSE_POSITIONING_X_MOVE_MIN;
+				var maxX = fieldingConstants.DEFENSE_POSITIONING_X_MOVE_MAX;
+
+				var minY = fieldingConstants.DEFENSE_POSITIONING_Y_MOVE_MIN;
+				var maxY = fieldingConstants.DEFENSE_POSITIONING_Y_MOVE_MAX;
 
 				_.each(playersFieldingBall, function(player){
 					//shimmy players' x/y if not C or P
 					if((player.position !== appConstants.GAME_PLAY.POSITIONS.CATCHER) && (player.position !== appConstants.GAME_PLAY.POSITIONS.PITCHER)){
-						var randomXPosition = __.getRandomIntInclusive(min, max);
-						var randomYPosition = __.getRandomIntInclusive(min, max);
+						var randomXPosition = __.getRandomIntInclusive(minX, maxX);
+						var randomYPosition = __.getRandomIntInclusive(minY, maxY);
 						var randomXMultiplier = 1;
 						var randomYMultiplier = -1;
 						

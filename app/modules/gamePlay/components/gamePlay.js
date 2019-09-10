@@ -291,6 +291,7 @@ module.exports = function(module){
 							var makeChange = false;
 							var badPerformance = false;
 							var currentInning = Math.floor(params.inning);
+							var threeInningsAgo = ((params.inning >= 4) ? (currentInning - 3) : 0);
 							var twoInningsAgo = ((params.inning >= 3) ? (currentInning - 2) : 0);
 							var oneInningAgo = ((params.inning >= 2) ? (currentInning - 1) : 0);
 
@@ -301,14 +302,28 @@ module.exports = function(module){
 							var runsAllowedCurrentInningDelta = (this.runsAllowedByInning[currentInning] * pitchConstants.PERFORMANCE_WEIGHT.RUNS_CURRENT_INNING);
 							var deficitDelta = (params.defense.currentPitcherScoreDeficit[this.id] * pitchConstants.PERFORMANCE_WEIGHT.DEFICIT);
 							var runsAllowedPreviousInningsDelta = 0;
+							var hitsAllowedPreviousInningsDelta = 0;
+							var walksAllowedPreviousInningsDelta = 0;
 
-							if(twoInningsAgo) runsAllowedPreviousInningsDelta += (this.runsAllowedByInning[twoInningsAgo] * pitchConstants.PERFORMANCE_WEIGHT.RUNS_PREV_INNINGS);
-							if(oneInningAgo) runsAllowedPreviousInningsDelta += (this.runsAllowedByInning[oneInningAgo] * pitchConstants.PERFORMANCE_WEIGHT.RUNS_PREV_INNINGS);
+							if(threeInningsAgo) runsAllowedPreviousInningsDelta += (this.runsAllowedByInning[threeInningsAgo] * pitchConstants.PERFORMANCE_WEIGHT.RUNS_PREV_INNINGS);
+							
+							if(twoInningsAgo){
+								runsAllowedPreviousInningsDelta += (this.runsAllowedByInning[twoInningsAgo] * pitchConstants.PERFORMANCE_WEIGHT.RUNS_PREV_INNINGS);
+								hitsAllowedPreviousInningsDelta += (this.hitsAllowedByInning[twoInningsAgo] * pitchConstants.PERFORMANCE_WEIGHT.HITS_PREV_INNINGS);
+							}
 
-							console.log('P performance: ' + (walksStrikeoutsDelta + homeRunsAllowedDelta + hitsAllowedDelta + walksAllowedDelta + runsAllowedCurrentInningDelta + deficitDelta + runsAllowedPreviousInningsDelta));
+							if(oneInningAgo){
+								runsAllowedPreviousInningsDelta += (this.runsAllowedByInning[oneInningAgo] * pitchConstants.PERFORMANCE_WEIGHT.RUNS_PREV_INNINGS);
+								hitsAllowedPreviousInningsDelta += (this.hitsAllowedByInning[oneInningAgo] * pitchConstants.PERFORMANCE_WEIGHT.HITS_PREV_INNINGS);
+								walksAllowedPreviousInningsDelta += (this.walksAllowedByInning[oneInningAgo] * pitchConstants.PERFORMANCE_WEIGHT.WALKS_PREV_INNINGS);
+							}
+
+							console.log('P performance: ' + (walksStrikeoutsDelta + homeRunsAllowedDelta + hitsAllowedDelta + walksAllowedDelta + runsAllowedCurrentInningDelta 
+								+ deficitDelta + runsAllowedPreviousInningsDelta + hitsAllowedPreviousInningsDelta + walksAllowedPreviousInningsDelta));
 
 							badPerformance = (__.getRandomIntInclusive(pitchConstants.BAD_PERFORMANCE_MIN, pitchConstants.BAD_PERFORMANCE_MAX) <= 
-								(walksStrikeoutsDelta + homeRunsAllowedDelta + hitsAllowedDelta + walksAllowedDelta + runsAllowedCurrentInningDelta + deficitDelta + runsAllowedPreviousInningsDelta));
+								(walksStrikeoutsDelta + homeRunsAllowedDelta + hitsAllowedDelta + walksAllowedDelta + runsAllowedCurrentInningDelta 
+									+ deficitDelta + runsAllowedPreviousInningsDelta + hitsAllowedPreviousInningsDelta + walksAllowedPreviousInningsDelta));
 
 							//take pitcher out if on inning end, he is (at or) above pitch count for game
 							//OR we've reached at least the end of the 8th or 9th
@@ -422,7 +437,7 @@ module.exports = function(module){
 				return _.includes(config.locations, locationKey);
 			});
 
-			var potentialMiscalledBallReposition = _.find(pitchConstants.MISCALLED_BALL_REPOSITION, function(config){
+			var potentialMiscalledPitchReposition = _.find(pitchConstants.MISCALLED_PITCH_REPOSITION, function(config){
 				return _.includes(config.locations, locationKey);
 			});
 
@@ -505,17 +520,15 @@ module.exports = function(module){
 			    	y: (__.getRandomDecimalInclusive(animation.ranges.minTop, animation.ranges.maxTop, 5) / ballPositionDivider)
 			    };
 
-			    //REPOSITION MISCALLED BALL IF WOULD DISPLAY TOO FAR IN ZONE
-			    if((battingResults.umpireCallOnNonSwing === appConstants.BALL) && potentialMiscalledBallReposition){
-			    	var positionToChange = (potentialMiscalledBallReposition.repositionX ? 'x' : 'y');
+			    //REPOSITION MISCALLED PITCH IF WOULD DISPLAY TOO FAR IN ZONE IF CALLED BALL OR OUT OF ZONE IF CALLED STRIKE
+			    if(battingResults.umpireCallOnNonSwing && potentialMiscalledPitchReposition){
+			    	var positionToChange = (potentialMiscalledPitchReposition.repositionX ? 'x' : 'y');
 
-			    	//left/top of zone
-		    		if((finalPitchXY[positionToChange] >= potentialMiscalledBallReposition.repositionLimit) && potentialMiscalledBallReposition.isGreaterThanLimit){
-						finalPitchXY[positionToChange] = __.getRandomDecimalInclusive(potentialMiscalledBallReposition.zoneLimit, potentialMiscalledBallReposition.repositionLimit, 5);
+		    		if((finalPitchXY[positionToChange] >= potentialMiscalledPitchReposition.repositionLimit) && potentialMiscalledPitchReposition.isGreaterThanLimit){
+						finalPitchXY[positionToChange] = __.getRandomDecimalInclusive(potentialMiscalledPitchReposition.zoneLimit, potentialMiscalledPitchReposition.repositionLimit, 5);
 					}
-					//bottom/right of zone
-					else if((finalPitchXY[positionToChange] <= potentialMiscalledBallReposition.repositionLimit) && !potentialMiscalledBallReposition.isGreaterThanLimit){
-						finalPitchXY[positionToChange] = __.getRandomDecimalInclusive(potentialMiscalledBallReposition.repositionLimit, potentialMiscalledBallReposition.zoneLimit, 5);
+					else if((finalPitchXY[positionToChange] <= potentialMiscalledPitchReposition.repositionLimit) && !potentialMiscalledPitchReposition.isGreaterThanLimit){
+						finalPitchXY[positionToChange] = __.getRandomDecimalInclusive(potentialMiscalledPitchReposition.repositionLimit, potentialMiscalledPitchReposition.zoneLimit, 5);
 					}
 			    }
 
@@ -577,6 +590,7 @@ module.exports = function(module){
 			if(gamePlayService.hasInningEnded()) this.handleCurrentPitcherCard();
 			
 			this.inning = gamePlayService.inning();
+			this.baseInning = Math.floor(this.inning);
 			this.currentInningForDisplay = __.formatInning(this.inning);
 			this.currentInningForPlayByPlay = __.formatInning(this.inning, true);
 			this.count = ('' + gamePlayService.balls() + '-' + gamePlayService.strikes());
@@ -605,6 +619,7 @@ module.exports = function(module){
 			var transitionTimeout = 0;
 			var pitcherChange = null;
 			var inningEndPitcherChange = false;
+			var thisPlay = {};
 
 			$timeout(function(params){
 				var scope = params.scope;
@@ -783,6 +798,9 @@ module.exports = function(module){
 						pitcherChange: ((inningEndPitcherChange && inningEnded) || (!inningEndPitcherChange && pitcherChange) ? pitcherChange : null)
 					});
 
+					thisPlay = _.head(scope.playByPlay[scope.currentInningForPlayByPlay]);
+					thisPlay.scoringPlay = (battingResults.homeRun || baseRunningResults.playersWhoScored);
+
 					scope.currentOuts = (inningEnded && (outsBeforePlay && (gamePlayService.outs() === 0)) ? 3 : gamePlayService.outs());
 					scope.currentBases = baseRunningService.getBaseRunnersStatus();
 
@@ -796,6 +814,12 @@ module.exports = function(module){
 
 				scope.gamePlayElement.style.webkitAnimation = 'none';
 				scope.gamePlayElement.style.animation = 'none';
+
+				scope.winningTeam = _.maxBy(scope.gameTeams, function(team){
+					return team.battingTotals.totalRuns;
+				});
+
+				console.log('inning: ' + scope.currentInningForDisplay);
 
 				//INNING (HALF) END
 				if(inningEnded){
@@ -811,9 +835,7 @@ module.exports = function(module){
 							inningEnded: true,
 							fullInningEnded: scope.fullInningEnded,
 							gameOver: scope.gameIsOver,
-							winningTeam: _.maxBy(scope.gameTeams, function(team){
-								return team.battingTotals.totalRuns;
-							})
+							winningTeam: scope.winningTeam
 						});
 
 						scope.gamePlayElement.style.webkitAnimation = 'in-game-transition ' + appConstants.GAME_PLAY.INNING_END_TRANSITION_TIME + 'ms ease-in';
@@ -853,9 +875,7 @@ module.exports = function(module){
 				else if(scope.newBatter){
 					transitionTimeout = (appConstants.GAME_PLAY.PAUSE_ON_INNING_PA_END + appConstants.GAME_PLAY.SHORT_TRANSITION_TIME);
 
-					if(pitcherChange && !inningEndPitcherChange){
-						gamePlayService.handlePitcherChange();
-					}
+					if(pitcherChange && !inningEndPitcherChange) gamePlayService.handlePitcherChange();
 
 					$timeout(function(){
 						scope.gamePlayElement.style.webkitAnimation = 'in-game-transition ' + appConstants.GAME_PLAY.SHORT_TRANSITION_TIME + 'ms ease-in';
@@ -907,6 +927,7 @@ module.exports = function(module){
 			this.gameTeams = [];
 			this.pitcher = {};
 			this.batter = {};
+			this.winningTeam = {};
 			this.gameIsOver = false;
 			this.gameInProgress = false;
 		}

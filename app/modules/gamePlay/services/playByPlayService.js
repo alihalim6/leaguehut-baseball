@@ -189,7 +189,7 @@ module.exports = function(module){
 
 							var homeRunCallOne = (___.bool() && runnersBattedIn && !grandSlam) ?
 								batter.lastName + ' hits a ' + appConstants.NUMBERS_WORDS_FOR_DISPLAY[runnersBattedIn + 1] + '-run shot ' + hitDistance + ' to ' + hitSectionForCall + '! ' + 
-									(goAheadHR ? offense.name + ' takes the lead! ' : (batter.HR > 1 ? 'His ' + appConstants.NUMBERS_FOR_DISPLAY[batter.HR] + ' of the day! ': (offenseScorelessBeforePlay ? offense.name + ' is on the board. ' : ' And the ' + leadWord + ' is ' + leadAction))) : 
+									(goAheadHR ? offense.name + ' takes the lead! ' : (batter.HR > 1 ? 'His ' + appConstants.NUMBERS_FOR_DISPLAY[batter.HR] + ' of the day! ': (offenseScorelessBeforePlay ? offense.name + ' is now on the board. ' : ' And the ' + leadWord + ' is ' + leadAction))) : 
 								batter.lastName + ' ' + battingConstants.BATTED_BALL_DESC_FOR_DISPLAY_NO_PITCH_TYPE[battedBallType] + ' deep...HOME RUN! ' + offense.name + '\'s ' + appConstants.NUMBERS_FOR_DISPLAY[offense.battingTotals.totalHRs] + ' of the day' + (goAheadHR ? ' as they take the lead. ' : '. ');
 
 							var homeRunCallTwo = ___.bool() ?

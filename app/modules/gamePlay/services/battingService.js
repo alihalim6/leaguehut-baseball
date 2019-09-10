@@ -78,8 +78,8 @@ module.exports = function(module){
 				//check to see if more likely to swing at it instead of taking the BALL
 				//based on aggression
 				if(battingResults.positiveId){
-					//random number only to 50 to lessen the effect of batters with low PTS not swinging often
-					moreLikelyToSwing = (__.getRandomIntInclusive(0, 50) <= batter.propensityToSwing);
+					//random number only to PTS_MODIFIER to lessen the effect of batters with low PTS not swinging often
+					moreLikelyToSwing = (__.getRandomIntInclusive(0, battingConstants.PTS_MODIFIER) <= batter.propensityToSwing);
 				}
 				//negative ID on pitch outside the zone
 				//check to see if more likely to swing
@@ -369,8 +369,8 @@ module.exports = function(module){
 
 					if((cStrikePerc < 100) && (cStrikePerc > 0)){
 						//EVALUATE ME--most fastballs have incr likelihood of being called strike (ok b/c less movement->easier for ump?)
-						var umpireCallNum = __.getRandomDecimalInclusive(pitchConstants.MIN_QUAL_FOR_CSTRIKE_CHECK, pitchConstants.MAX_QUAL_FOR_CSTRIKE_CHECK, 2);
-						var aidedByPitchQuality = (umpireCallNum <= pitch.pitchQuality);
+						var umpireCallQualityNum = __.getRandomDecimalInclusive(pitchConstants.MIN_QUAL_FOR_CSTRIKE_CHECK, pitchConstants.MAX_QUAL_FOR_CSTRIKE_CHECK, 2);
+						var aidedByPitchQuality = (umpireCallQualityNum <= pitch.pitchQuality);
 						var umpireCallDelta = (pitch.pitchQuality * pitchConstants.QUAL_CSTRIKE_MULTIPLIER);
 						umpireCallDelta *= (aidedByPitchQuality ? 1 : -1);
 						var finalCalledStrikePerc = (cStrikePerc + umpireCallDelta);

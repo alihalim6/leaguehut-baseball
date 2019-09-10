@@ -209,6 +209,10 @@ module.exports = function(module){
 						}
 					});
 
+					//issue seen where this finalPitchType was undefined later on and maybe due to this being undefined;
+					//default it to FB
+					if(!pitch.countLogicPitchType) pitch.countLogicPitchType = pitchConstants.PITCH_TYPES.FASTBALL;
+
 					return pitch.location;
 				}
 			}
@@ -303,6 +307,9 @@ module.exports = function(module){
 			if(countLogicOverridesArsenal(pitchTypeNum, arsenalPercentage, arsenalPercentageMin, arsenalPercentageMax)){
 				finalPitchType = pitch.countLogicPitchType;
 			}
+
+			//issue seen once in a million pitches where finalPitchType was somehow undefined here; default it to FB
+			if(!finalPitchType) pitch.finalPitchType = pitchConstants.PITCH_TYPES.FASTBALL;
 
 			if(pitchTypes[finalPitchType].pitchSubType){
 				pitch.pitchSubType = pitchTypes[finalPitchType].pitchSubType;

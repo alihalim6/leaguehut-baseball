@@ -7,7 +7,7 @@
 		<thead>
 			<tr>
 				<th><!-- team name column --></th>
-				<th ng-repeat="(key, value) in $ctrl.gameTeams[0].inningScores">{{::key}}</th>
+				<th class="inning" ng-class="{'current-inning': !$ctrl.gameIsOver && (key == $ctrl.baseInning)}" ng-repeat="(key, value) in $ctrl.gameTeams[0].inningScores">{{::key}}</th>
 				<th class="emphasize-boldest highlight-cell">R</th>
 				<th class="emphasize-boldest highlight-cell">H</th>
 				<th class="emphasize-boldest highlight-cell error-cell">
@@ -19,16 +19,16 @@
 		<tbody>
 			<tr>
 				<td class="emphasize-boldest">{{::$ctrl.gameTeams[0].name}}</td>
-				<td ng-repeat="(key, value) in $ctrl.gameTeams[0].inningScores">{{value}}</td>
-				<td>{{$ctrl.gameTeams[0].battingTotals.totalRuns}}</td>
+				<td ng-repeat="(key, value) in $ctrl.gameTeams[0].inningScores" ng-class="{'current-inning': !$ctrl.gameIsOver && (key == $ctrl.baseInning)}">{{value}}</td>
+				<td ng-class="{'winning-score': $ctrl.gameIsOver && ($ctrl.gameTeams[0].id === $ctrl.winningTeam.id)}">{{$ctrl.gameTeams[0].battingTotals.totalRuns}}</td>
 				<td>{{$ctrl.gameTeams[0].battingTotals.totalHits}}</td>
 				<td>{{$ctrl.gameTeams[0].totalErrors}}</td>
 			</tr>
 
 			<tr>
 				<td class="emphasize-boldest">{{::$ctrl.gameTeams[1].name}}</td>
-				<td ng-repeat="(key, value) in $ctrl.gameTeams[1].inningScores">{{value}}</td>
-				<td>{{$ctrl.gameTeams[1].battingTotals.totalRuns}}</td>
+				<td ng-repeat="(key, value) in $ctrl.gameTeams[1].inningScores" ng-class="{'current-inning': !$ctrl.gameIsOver && (key == $ctrl.baseInning)}">{{value}}</td>
+				<td ng-class="{'winning-score': $ctrl.gameIsOver && ($ctrl.gameTeams[1].id === $ctrl.winningTeam.id)}">{{$ctrl.gameTeams[1].battingTotals.totalRuns}}</td>
 				<td>{{$ctrl.gameTeams[1].battingTotals.totalHits}}</td>
 				<td>{{$ctrl.gameTeams[1].totalErrors}}</td>
 			</tr>
@@ -207,7 +207,7 @@
 	<div class="auto-overflow">
 		<div ng-repeat="team in $ctrl.gameTeams" class="player-box-scores" ng-class="{'right-team': !$first}">
 			<div class="team-{{team.id}}-font box-score-team-name team-{{team.id}}-box-score-name-margin" 
-				ng-class="{'special-team-name-small': (team.id === 8), 'special-team-name-no-margin-top': (team.id === 1 || team.id === 7)}">
+				ng-class="{'special-team-name-small': (team.id === 8), 'special-team-name-no-margin-top': (team.id === 7), 'special-team-name-high-margin-top': (team.id === 1)}">
 		 		{{::team.name}}
 		 	</div>
 
@@ -293,27 +293,27 @@
 		<div class="plays">
 			<div ng-repeat="play in $ctrl.playByPlay[$ctrl.currentPlayByPlaySelected]" class="play" ng-class="{'last-play': $last}">
 				<div class="play-info-container" ng-if="!play.announcement" ng-class="{'two-play-calls-present': play.playCallPartTwo}">
-					<div class="play-spacing play-padding">{{play.count}}</div>
+					<div class="play-spacing play-padding">{{::play.count}}</div>
 					<img ng-src="{{'img/bases_before_play_' + play.bases + '.png'}}" class="bases-before-play">
 					<img ng-src="{{'img/outs_before_play_' + play.outs + '.png'}}" class="outs-before-play">
 					<div class="play-by-play-player">
 						<img ng-src="{{'img/team_cap_' + play.pitcher.teamId + '.png'}}" class="play-by-play-player-cap">
 						<svg-icon icon-source="'player_head_' + play.pitcher.id" class="play-by-play-player-headshot"></svg-icon>
-						<div>{{play.pitcher.lastName}}</div>
+						<div>{{::play.pitcher.lastName}}</div>
 					</div>
-					<div class="play-padding">{{play.pitchVelocity}} mph <div class="play-pitch-type">{{play.pitchType}}</div></div>
+					<div class="play-padding">{{::play.pitchVelocity}} mph <div class="play-pitch-type">{{::play.pitchType}}</div></div>
 					<div class="play-by-play-player">
 						<img ng-src="{{'img/team_cap_' + play.batter.teamId + '.png'}}" class="play-by-play-player-cap">
 						<svg-icon icon-source="'player_head_' + play.batter.id" class="play-by-play-player-headshot"></svg-icon>
-						<div>{{play.batter.lastName}}</div>
+						<div>{{::play.batter.lastName}}</div>
 					</div>
 				</div>
 				<div class="play-spacing play-call" 
-					  ng-class="{'move-play-call-up': play.playCallPartTwo, 'play-call-announcement': play.announcement, 'end-full-inning': play.fullInningEnded, 'game-over-call': play.gameOver}">
-					{{play.playCall}}
+					  ng-class="{'move-play-call-up': play.playCallPartTwo, 'play-call-announcement': play.announcement, 'end-full-inning': play.fullInningEnded, 'game-over-call': play.gameOver, 'scoring-play': play.scoringPlay}">
+					{{::play.playCall}}
 				</div>
-				<div class="play-spacing play-call play-call-part-two" ng-if="play.playCallPartTwo">
-					{{play.playCallPartTwo}}
+				<div class="play-spacing play-call play-call-part-two" ng-class="{'scoring-play': play.scoringPlay}" ng-if="play.playCallPartTwo">
+					{{::play.playCallPartTwo}}
 				</div>
 			</div>
 		</div>

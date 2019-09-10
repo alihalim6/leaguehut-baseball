@@ -396,11 +396,9 @@ module.exports = function(module){
 					//runner going back to base
 					if(!runToNextBase){
 						if(distanceCoveredBeforeCatch >= delta){
-							//console.log("able to reach base before catch; setting distance from current base");
 							baseRunner.currentDistance = appConstants.GAME_PLAY.BASES[baseRunner.currentBase].distance;
 						}
 						else{
-							//console.log("not able to reach base before catch; setting distance from current base plus how far away from base before catch");
 							baseRunner.currentDistance = (appConstants.GAME_PLAY.BASES[baseRunner.currentBase].distance + (delta - distanceCoveredBeforeCatch));
 						}
 					}
@@ -489,6 +487,7 @@ module.exports = function(module){
 				}
 			}
 
+			//will tag up OR non-airborn ball
 			if(willTagUpInTime){
 				var currentBases = getBaseRunnersStatus();
 				//batter's starting point different from already-on-base runners
@@ -843,6 +842,7 @@ module.exports = function(module){
 				runner.delayedSteal = false;
 				runner.noPlayOnSteal = false;
 				runner.signalledToSteal = false;
+				runner.distanceIfNoSteal = 0;
 			});
 		}
 

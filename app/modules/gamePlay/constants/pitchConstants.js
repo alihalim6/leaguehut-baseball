@@ -26,10 +26,15 @@ module.exports = function(module){
 		MIN_LEFT_CENTER_RIGHT: 177,
 		MAX_LEFT_CENTER_RIGHT: 231,
 
-		MAX_TOP_FOR_UP_MISCALLED_BALL: 62,
-		MIN_TOP_FOR_DOWN_MISCALLED_BALL: 210,
-		MIN_LEFT_FOR_RIGHT_MISCALLED_BALL: 210,
-		MAX_LEFT_FOR_LEFT_MISCALLED_BALL: 92
+		MAX_TOP_FOR_UP_MISCALLED_BALL: 57,
+		MIN_TOP_FOR_DOWN_MISCALLED_BALL: 217,
+		MIN_LEFT_FOR_RIGHT_MISCALLED_BALL: 221,
+		MAX_LEFT_FOR_LEFT_MISCALLED_BALL: 82,
+
+		MIN_TOP_FOR_HIGH_MISCALLED_STRIKE: 43,
+		MIN_LEFT_FOR_LEFT_MISCALLED_STRIKE: 67,
+		MAX_TOP_FOR_LOW_MISCALLED_STRIKE: 233,
+		MAX_LEFT_FOR_RIGHT_MISCALLED_STRIKE: 236
 	};
 
 	module.constant('pitchConstants', {
@@ -59,13 +64,15 @@ module.exports = function(module){
 		PERFORMANCE_WEIGHT : {
 			HR: 3,
 			HITS: 3,
+			HITS_PREV_INNINGS: 2,
 			RUNS_CURRENT_INNING: 5,
 			RUNS_PREV_INNINGS: 4,
 			DEFICIT: 4,
-			WALKS: 2
+			WALKS: 2,
+			WALKS_PREV_INNINGS: 1
 		},
 
-		BAD_PERFORMANCE_MIN : 50,
+		BAD_PERFORMANCE_MIN : 45,
 		BAD_PERFORMANCE_MAX : 100,
 
 		PITCH_TYPES : {
@@ -191,7 +198,13 @@ module.exports = function(module){
 			}
 		},
 
-		MISCALLED_BALL_REPOSITION : [
+		MISCALLED_PITCH_REPOSITION : [
+			//HIGH
+			{
+				locations: ['RHI', 'RMHI', 'RMHM', 'RMHO', 'RHA', 'LHI', 'LMHI', 'LMHM', 'LMHO', 'LHA'],
+				repositionLimit: PITCH_ANIMATION_GLOBAL.MIN_TOP_FOR_HIGH_MISCALLED_STRIKE,
+				zoneLimit: PITCH_ANIMATION_GLOBAL.MAX_TOP_HIGH
+			},
 			//UP
 			{
 				locations: ['RSUI', 'RSUM', 'RSUO', 'LSUI', 'LSUM', 'LSUO'],
@@ -205,7 +218,24 @@ module.exports = function(module){
 				repositionLimit: PITCH_ANIMATION_GLOBAL.MIN_TOP_FOR_DOWN_MISCALLED_BALL,
 				zoneLimit: PITCH_ANIMATION_GLOBAL.MAX_TOP_DOWN
 			},
-			//R IN/L OUT
+			//LOW
+			{
+				locations: ['RLI', 'RMLI', 'RMLM', 'RMLO', 'RLA', 'LLI', 'LMLI', 'LMLM', 'LMLO', 'LLA'],
+				repositionLimit: PITCH_ANIMATION_GLOBAL.MAX_TOP_FOR_LOW_MISCALLED_STRIKE,
+				zoneLimit: PITCH_ANIMATION_GLOBAL.MIN_TOP_LOW,
+				isGreaterThanLimit: true
+			},
+
+
+
+			//OUT OF ZONE R IN/L OUT
+			{
+				locations: ['RMIU', 'RMIM', 'RMID', 'LMOU', 'LMOM', 'LMOD'],
+				repositionLimit: PITCH_ANIMATION_GLOBAL.MIN_LEFT_FOR_LEFT_MISCALLED_STRIKE,
+				zoneLimit: PITCH_ANIMATION_GLOBAL.MAX_LEFT_LEFT,
+				repositionX: true
+			},
+			//ZONE R IN/L OUT
 			{
 				locations: ['RSCI', 'LSCO'],
 				repositionLimit: PITCH_ANIMATION_GLOBAL.MAX_LEFT_FOR_LEFT_MISCALLED_BALL,
@@ -213,7 +243,15 @@ module.exports = function(module){
 				repositionX: true,
 				isGreaterThanLimit: true
 			},
-			//R OUT/L IN
+			//OUT OF ZONE R OUT/L IN
+			{
+				locations: ['RMOU', 'RMOM', 'RMOD', 'LMIU', 'LMIM', 'LMID'],
+				repositionLimit: PITCH_ANIMATION_GLOBAL.MAX_LEFT_FOR_RIGHT_MISCALLED_STRIKE,
+				zoneLimit: PITCH_ANIMATION_GLOBAL.MIN_LEFT_RIGHT,
+				repositionX: true,
+				isGreaterThanLimit: true
+			},
+			//ZONE R OUT/L IN
 			{
 				locations: ['RSCO', 'LSCI'],
 				repositionLimit: PITCH_ANIMATION_GLOBAL.MIN_LEFT_FOR_RIGHT_MISCALLED_BALL,

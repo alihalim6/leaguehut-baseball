@@ -189,7 +189,7 @@ module.exports = function(module){
 					baseNumber : 3,
 					baseId: '3B',
 					baseName: '3rd',
-					outPriority: 20
+					outPriority: 200
 				},
 				'4' : {
 					x : 200,
@@ -198,7 +198,7 @@ module.exports = function(module){
 					baseNumber : 4,
 					baseId: 'HOME',
 					//throw to home is lowest priority if there are other plays to be made
-					outPriority: 99
+					outPriority: 500
 				}
 			},
 
