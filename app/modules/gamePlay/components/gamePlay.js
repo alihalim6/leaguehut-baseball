@@ -160,14 +160,27 @@ module.exports = function(module){
 			    };
 
 			    //REPOSITION MISCALLED PITCH IF WOULD DISPLAY TOO FAR IN ZONE IF CALLED BALL OR OUT OF ZONE IF CALLED STRIKE
-			    if(battingResults.umpireCallOnNonSwing && potentialMiscalledPitchReposition){
-			    	var positionToChange = (potentialMiscalledPitchReposition.repositionX ? 'x' : 'y');
+			    if(battingResults.umpireMissedCall && potentialMiscalledPitchReposition){//have to check for potentialMiscalledPitchReposition since SC is never miscalled
+			    	//non-corner locations
+			    	if(!potentialMiscalledPitchReposition.repositionXY){
+				    	var positionToChange = (potentialMiscalledPitchReposition.repositionX ? 'x' : 'y');
 
-		    		if((finalPitchXY[positionToChange] >= potentialMiscalledPitchReposition.repositionLimit) && potentialMiscalledPitchReposition.isGreaterThanLimit){
-						finalPitchXY[positionToChange] = __.getRandomDecimalInclusive(potentialMiscalledPitchReposition.zoneLimit, potentialMiscalledPitchReposition.repositionLimit, 5);
+			    		if((finalPitchXY[positionToChange] > potentialMiscalledPitchReposition.repositionLimit) && potentialMiscalledPitchReposition.isGreaterThanLimit){
+							finalPitchXY[positionToChange] = __.getRandomDecimalInclusive(potentialMiscalledPitchReposition.zoneLimit, potentialMiscalledPitchReposition.repositionLimit, 5);
+						}
+						else if((finalPitchXY[positionToChange] < potentialMiscalledPitchReposition.repositionLimit) && !potentialMiscalledPitchReposition.isGreaterThanLimit){
+							finalPitchXY[positionToChange] = __.getRandomDecimalInclusive(potentialMiscalledPitchReposition.repositionLimit, potentialMiscalledPitchReposition.zoneLimit, 5);
+						}
 					}
-					else if((finalPitchXY[positionToChange] <= potentialMiscalledPitchReposition.repositionLimit) && !potentialMiscalledPitchReposition.isGreaterThanLimit){
-						finalPitchXY[positionToChange] = __.getRandomDecimalInclusive(potentialMiscalledPitchReposition.repositionLimit, potentialMiscalledPitchReposition.zoneLimit, 5);
+					//corner locations
+					else{
+						if((finalPitchXY.x > potentialMiscalledPitchReposition.repositionLimitX) || (finalPitchXY.x < potentialMiscalledPitchReposition.zoneLimitX)){
+							finalPitchXY.x = __.getRandomDecimalInclusive(potentialMiscalledPitchReposition.zoneLimitX, potentialMiscalledPitchReposition.repositionLimitX, 5);
+						}
+
+						if((finalPitchXY.y < potentialMiscalledPitchReposition.zoneLimitY) || (finalPitchXY.y > potentialMiscalledPitchReposition.repositionLimitY)){
+							finalPitchXY.y = __.getRandomDecimalInclusive(potentialMiscalledPitchReposition.zoneLimitY, potentialMiscalledPitchReposition.repositionLimitY, 5);
+						}
 					}
 			    }
 
@@ -473,11 +486,8 @@ module.exports = function(module){
 				if(inningEnded){
 					transitionTimeout = (appConstants.GAME_PLAY.PAUSE_ON_INNING_PA_END + appConstants.GAME_PLAY.INNING_END_TRANSITION_TIME);
 
-					if(inningEndPitcherChange) gamePlayService.handlePitcherChange();
-
 					$timeout(function(){
-						gamePlayService.setField(scope.defense, scope.offense);
-
+						
 						scope.playByPlay = playByPlayService.generatePlayByPlay({
 							inning: scope.currentInningForPlayByPlay,
 							inningEnded: true,
@@ -497,7 +507,12 @@ module.exports = function(module){
 								scope.showTeamStatsModal();
 							}
 							else{
-								if(inningEndPitcherChange) scope.handleCurrentPitcherCard();
+								if(inningEndPitcherChange){
+									gamePlayService.handlePitcherChange();
+									scope.handleCurrentPitcherCard();
+								}
+
+								gamePlayService.setField(scope.defense, scope.offense);
 								scope.setUpPlay();
 							}
 
@@ -523,15 +538,16 @@ module.exports = function(module){
 				else if(scope.newBatter){
 					transitionTimeout = (appConstants.GAME_PLAY.PAUSE_ON_INNING_PA_END + appConstants.GAME_PLAY.SHORT_TRANSITION_TIME);
 
-					if(pitcherChange && !inningEndPitcherChange) gamePlayService.handlePitcherChange();
-
 					$timeout(function(){
 						scope.gamePlayElement.style.webkitAnimation = 'in-game-transition ' + appConstants.GAME_PLAY.SHORT_TRANSITION_TIME + 'ms ease-in';
 						scope.gamePlayElement.style.animation = 'in-game-transition ' + appConstants.GAME_PLAY.SHORT_TRANSITION_TIME + 'ms ease-in';
 
 						//refresh view when opacity is 0 (after SHORT_TRANSITION_TIME)
 						$timeout(function(){
-							if(pitcherChange && !inningEndPitcherChange) scope.handleCurrentPitcherCard();
+							if(pitcherChange && !inningEndPitcherChange){
+								gamePlayService.handlePitcherChange();
+								scope.handleCurrentPitcherCard();
+							}
 
 							scope.setUpPlay();
 						}, (appConstants.GAME_PLAY.SHORT_TRANSITION_TIME / 2));

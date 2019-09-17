@@ -204,7 +204,7 @@ module.exports = function(module){
 						x : base.x, 
 						y : base.y
 					};
-					
+
 					var distanceToBase = __.getDistance(throwFromXY, baseXY);
 
 					//throw to cutoff man if outfielder too far away from base
@@ -446,9 +446,13 @@ module.exports = function(module){
 						potentialPlay.timeToBase = timeToBaseInfo[0].timeToBase;
 						delta *= (potentialPlay.runnerGoingBackToBase ? -1 : 1);
 
+						//if throw would not be a force out, only consider it a play to be made if runner would be far enough away from base 
+						//(not worth the throw if he is too close since catch and tag would be needed)
+						var distanceDifference = (potentialPlay.forceOut ? fieldingConstants.DIST_DIFF_FOR_PROJECTED_BASE_REACH : fieldingConstants.DIST_DIFF_FOR_PROJECTED_BASE_REACH_NON_FORCEOUT);
+
 						var projectedDistanceAtTimeBallReachesBase = (potentialPlay.runnersCurrentDistance + delta);
 						var runnerDistanceFromBase = (projectedDistanceAtTimeBallReachesBase - appConstants.GAME_PLAY.BASES[potentialPlay.base].distance);						
-						var playToBeMade = (potentialPlay.runnerGoingBackToBase ? (runnerDistanceFromBase > fieldingConstants.DIST_DIFF_FOR_PROJECTED_BASE_REACH) : (runnerDistanceFromBase < fieldingConstants.DIST_DIFF_FOR_PROJECTED_BASE_REACH));
+						var playToBeMade = (potentialPlay.runnerGoingBackToBase ? (runnerDistanceFromBase > distanceDifference) : (runnerDistanceFromBase < distanceDifference));
 
 						if(playToBeMade){
 							doublePlayPossible = true;
@@ -1068,7 +1072,7 @@ module.exports = function(module){
 
 					//undefined means 0 or 100
 					if(!chanceOfFielding){
-						//0% chance;
+						//0% chance
 						//oneHundredMax should only be undefined for 0.5-1.1 (no 100% distances)
 						if(!ratesForTime.oneHundredMax || (playerDistanceKey > ratesForTime.oneHundredMax)){
 							fieldingResults.chance = 0;

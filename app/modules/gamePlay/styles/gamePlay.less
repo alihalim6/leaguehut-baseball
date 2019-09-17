@@ -13,7 +13,7 @@
 @action-color: #fec43b;
 @foul-color: #aaaaaa;
 @hit-by-pitch-color: #0000ff;
-@big-things-color: #bdb200;
+@big-things-color: #bab100;
 
 .game-play {
 	min-width: 1400px;
@@ -590,17 +590,19 @@
 				top: -9px;
 			}
 
-			.play-call-announcement {
-				margin-bottom: 15px;
-				left: 694px;
-			}
-
 			.end-full-inning {
 				left: 702px;
 			}
 
-			.game-over-call {
-				left: 685px;
+			.announcement-container {
+				width: 100%;
+				text-align: center;
+				margin-left: -7px;
+
+				.play-call-announcement {
+					position: unset !important;
+					margin-bottom: 15px;
+				}
 			}
 
 			.play-call {

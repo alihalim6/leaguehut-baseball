@@ -75,7 +75,7 @@ module.exports = function(module){
 			WALKS_PREV_INNINGS: 1
 		},
 
-		BAD_PERFORMANCE_MIN : 40,
+		BAD_PERFORMANCE_MIN : 30,
 		BAD_PERFORMANCE_MAX : 100,
 
 		PITCH_TYPES : {
@@ -206,7 +206,7 @@ module.exports = function(module){
 		MISCALLED_PITCH_REPOSITION : [
 			//HIGH
 			{
-				locations: ['RHI', 'RMHI', 'RMHM', 'RMHO', 'RHA', 'LHI', 'LMHI', 'LMHM', 'LMHO', 'LHA'],
+				locations: ['RMHI', 'RMHM', 'RMHO', 'LMHI', 'LMHM', 'LMHO'],
 				repositionLimit: PITCH_ANIMATION_GLOBAL.MIN_TOP_FOR_HIGH_MISCALLED_STRIKE,
 				zoneLimit: PITCH_ANIMATION_GLOBAL.MAX_TOP_HIGH
 			},
@@ -225,13 +225,52 @@ module.exports = function(module){
 			},
 			//LOW
 			{
-				locations: ['RLI', 'RMLI', 'RMLM', 'RMLO', 'RLA', 'LLI', 'LMLI', 'LMLM', 'LMLO', 'LLA'],
+				locations: ['RMLI', 'RMLM', 'RMLO', 'LMLI', 'LMLM', 'LMLO'],
 				repositionLimit: PITCH_ANIMATION_GLOBAL.MAX_TOP_FOR_LOW_MISCALLED_STRIKE,
 				zoneLimit: PITCH_ANIMATION_GLOBAL.MIN_TOP_LOW,
 				isGreaterThanLimit: true
 			},
 
 
+			//R HIGH INSIDE/L HIGH AWAY
+			{
+				locations: ['RHI, LHA'],
+				repositionLimitY: PITCH_ANIMATION_GLOBAL.MAX_TOP_HIGH,
+				zoneLimitY: PITCH_ANIMATION_GLOBAL.MIN_TOP_FOR_HIGH_MISCALLED_STRIKE,
+				repositionLimitX: PITCH_ANIMATION_GLOBAL.MAX_LEFT_FOR_LEFT_MISCALLED_BALL,
+				zoneLimitX: PITCH_ANIMATION_GLOBAL.MIN_LEFT_CENTER_LEFT,
+				repositionXY: true
+			},
+			//R HIGH AWAY/L HIGH INSIDE
+			{
+				locations: ['RHA', 'LHI'],
+				repositionLimitY: PITCH_ANIMATION_GLOBAL.MAX_TOP_HIGH,
+				zoneLimitY: PITCH_ANIMATION_GLOBAL.MIN_TOP_FOR_HIGH_MISCALLED_STRIKE,
+				repositionLimitX: PITCH_ANIMATION_GLOBAL.MAX_LEFT_FOR_RIGHT_MISCALLED_STRIKE,
+				zoneLimitX: PITCH_ANIMATION_GLOBAL.MIN_LEFT_RIGHT,
+				repositionXY: true
+			},
+			
+
+			//R LOW INSIDE/L LOW AWAY
+			{
+				locations: ['RLI, LLA'],
+				repositionLimitY: PITCH_ANIMATION_GLOBAL.MAX_TOP_FOR_LOW_MISCALLED_STRIKE,
+				zoneLimitY: PITCH_ANIMATION_GLOBAL.MIN_TOP_LOW,
+				repositionLimitX: PITCH_ANIMATION_GLOBAL.MAX_LEFT_FOR_LEFT_MISCALLED_BALL,
+				zoneLimitX: PITCH_ANIMATION_GLOBAL.MIN_LEFT_CENTER_LEFT,
+				repositionXY: true
+			},
+			//R LOW AWAY/L LOW INSIDE
+			{
+				locations: ['RLA', 'LLI'],
+				repositionLimitY: PITCH_ANIMATION_GLOBAL.MAX_TOP_FOR_LOW_MISCALLED_STRIKE,
+				zoneLimitY: PITCH_ANIMATION_GLOBAL.MIN_TOP_LOW,
+				repositionLimitX: PITCH_ANIMATION_GLOBAL.MAX_LEFT_FOR_RIGHT_MISCALLED_STRIKE,
+				zoneLimitX: PITCH_ANIMATION_GLOBAL.MIN_LEFT_RIGHT,
+				repositionXY: true
+			},
+		
 
 			//OUT OF ZONE R IN/L OUT
 			{

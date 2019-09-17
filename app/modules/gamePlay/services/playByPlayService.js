@@ -413,7 +413,7 @@ module.exports = function(module){
 						//STRIKE 1 OR 2
 						if(!battingResults.struckOutLooking){
 							var strikeLookingCallOne = ___.bool() ?
-								batter.lastName + ' lays off of a ' + pitchTypeForCall + ' over the plate. ' + ((params.balls === 3 && resultingStrikeCount === 2) ? 'Full count' : params.balls + '-' + resultingStrikeCount + ' the count') + '. ' : 
+								batter.lastName + ' lays off of a ' + pitchTypeForCall + '. ' + ((params.balls === 3 && resultingStrikeCount === 2) ? 'Full count' : params.balls + '-' + resultingStrikeCount + ' the count') + '. ' : 
 								pitcher.lastName + '\'s ' + pitchTypeForCall + ' ' + ' catches ' + batter.lastName + ' looking. ' + appConstants.STRIKE + ' ' + resultingStrikeCount + '. ';
 							
 							var strikeLookingCallTwo = ___.bool() ?

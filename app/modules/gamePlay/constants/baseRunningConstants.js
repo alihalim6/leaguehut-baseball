@@ -4,11 +4,10 @@
 module.exports = function(module){
 	module.constant('baseRunningConstants', {
 		BASE_RUNNING_SPEED_MULTIPLIER: 0.1,
-		AIRBORN_BALL_MULTIPLIER: 0.01,
 
 		BASES_LEAD_OFF_DISTANCE_MIN: 12,
 		BASES_LEAD_OFF_DISTANCE_MAX: 18,
-		EXTRA_LEAD_OFF_DISTANCE_MIN: 3,
+		EXTRA_LEAD_OFF_DISTANCE_MIN: 4,
 		EXTRA_LEAD_OFF_DISTANCE_MAX: 8,
 
 		PROJ_RUN_RATE_DIVIDER_MIN: 2,
@@ -39,7 +38,7 @@ module.exports = function(module){
 			},
 
 			//base chances
-			
+
 			LL : {
 				'2' : 5.87,
 				'3' : 4.62

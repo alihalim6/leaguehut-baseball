@@ -5,7 +5,7 @@
     "start": "webpack-dev-server"
   },
   "version": "1.0.0",
-  "description": "LeagueHut Baseball simulation",
+  "description": "Baseball simulation game created with AngularJS, Google Firebase, and Webpack",
   "author": "Ali Halim",
   "dependencies": {
     "@babel/core": "^7.4.3",

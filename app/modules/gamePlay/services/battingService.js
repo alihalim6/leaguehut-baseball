@@ -388,6 +388,14 @@ module.exports = function(module){
 						battingResults.umpireCallOnNonSwing = ((cStrikePerc === 100) ? appConstants.STRIKE : appConstants.BALL);
 					}
 
+					if(battingResults.umpireCallOnNonSwing){
+						var pitchInStrikeZone = __.isPitchInStrikeZone(pitch.location);
+
+						if((pitchInStrikeZone && (battingResults.umpireCallOnNonSwing === appConstants.BALL)) || (!pitchInStrikeZone && (battingResults.umpireCallOnNonSwing === appConstants.STRIKE))){
+							battingResults.umpireMissedCall = true;
+						}
+					}
+
 					if(battingResults.umpireCallOnNonSwing === appConstants.BALL){
 						advanceRunner = gamePlayService.updateCount({addBall : true});
 						hitByPitchOrWalk = appConstants.WALK;

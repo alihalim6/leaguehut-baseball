@@ -202,6 +202,9 @@ module.exports = function(module){
 
 					continue;
 				}
+				else if(params.thirdOutRecorded){
+					continue;
+				}
 
 				var pitcher = gamePlayService.getPitcher();
 				var nextBase = (currentBase + 1);
