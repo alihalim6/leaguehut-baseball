@@ -1,5 +1,8 @@
 <div ng-if="$ctrl.gameInProgress" class="game-play" id="gamePlay">
+	<!-- GAME CLOSE 'X' ICON -->
 	<svg-icon svg-url="'x_icon'" class="end-game-x-icon " ng-click="$ctrl.endGame()"></svg-icon>
+
+	<!-- PLAYER INFO MODAL -->
 	<player-info-modal class="player-info-modal-container" id="playerInfoGamePlay"></player-info-modal>
 
 	<!-- SCOREBOARD -->
@@ -12,6 +15,7 @@
 				<th class="emphasize-boldest highlight-cell">H</th>
 				<th class="emphasize-boldest highlight-cell error-cell">
 					E
+					<!-- TEAM STATS INFO ICON -->
 					<svg-icon svg-url="'info_icon'" class="team-stats-info-icon" ng-click="$ctrl.showTeamStatsModal()"></svg-icon>
 				</th>
 			</tr>
@@ -78,8 +82,7 @@
 				<div id="currentCount">{{$ctrl.count}}</div>
 				<div id="pitchThrown">{{$ctrl.pitchThrown}}</div>
 			</div>
-			<div class="strike-zone" id="strikeZone">
-			</div>
+			<div class="strike-zone" id="strikeZone"></div>
 			<div class="legend-top-row">
 				<div class="ball called-ball"></div><div class="legend-label">CALLED BALL</div>
 				<div class="ball called-strike"></div><div class="legend-label">CALLED STRIKE</div>
@@ -91,7 +94,7 @@
 		</div>
 	</div>
 
-	<!-- TEAM STATS -->
+	<!-- TEAM STATS MODAL -->
 	<div class="team-stats-modal-container" id="teamStatsModal">
 		<div class="team-stats-modal">
 		    <svg-icon svg-url="'x_icon'" class="player-info-modal-x-icon" ng-click="$ctrl.closeTeamStatsModal()"></svg-icon>

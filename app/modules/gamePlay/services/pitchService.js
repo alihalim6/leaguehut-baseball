@@ -1,3 +1,6 @@
+/**
+ * Generates all of the properties of a pitch thrown.
+ */
 module.exports = function(module){
 	module.service('pitchService', pitchService);
 
@@ -15,6 +18,9 @@ module.exports = function(module){
 
 		return api;
 
+		/**
+		 * Determines the base velocity of a non-fastball pitch.
+		 */
 		function determineNonFbVelocity(pitchType){
 			if(pitchType === pitchConstants.PITCH_TYPES.SLIDER){
 				//avg FB-SL diff is 10.06
@@ -30,6 +36,9 @@ module.exports = function(module){
 			}
 		}
 
+		/**
+		 * Determines the final velocity of a pitch.
+		 */
 		function generateVelocity(velocity){
 			var delta = chance.bool() ? 1 : -1;
 
@@ -49,37 +58,39 @@ module.exports = function(module){
 			return velocity;
 		}
 
+		/**
+		 * Applies data-informed logic to the pitch's determined location based on the current count.
+		 */
 		function applyCountLogicToPitchLoc(determinedLocation, locAtIndexAbove, locAtIndexBelow){
 			var countPitchPercs = pitchConstants.COUNT_PITCH_PERCENTAGES[pitch.atBatHandedness];
 			var percentagesForBallCount = countPitchPercs[gamePlayService.balls()];
 			var avgInZoneForCount = percentagesForBallCount[gamePlayService.strikes()];
 			var pitchInStrikeZone = __.isPitchInStrikeZone(determinedLocation.location);
 			var countLogicNum = 0;
-			var pitchShouldBeInZone = false;
 			var indexDifference = 0;
+			var pitchShouldBeInZone = false;			
 			var finalLocation = determinedLocation;
 			
 			countLogicNum = __.getRandomDecimalInclusive(0, 100, 1);
-			pitchShouldBeInZone = countLogicNum <= avgInZoneForCount;
+			pitchShouldBeInZone = (countLogicNum <= avgInZoneForCount);
 			
-			//determined loc agrees, set that as pitch
+			//determined loc agrees
 			if((pitchInStrikeZone && pitchShouldBeInZone) || (!pitchInStrikeZone && !pitchShouldBeInZone)){
-				//do nothing, already defaulting to originally determined loc
+				//do nothing, defaulting to originally determined loc
 			}
-			else{
-				//check neighboring locs for if they agree
-
+			//check neighboring locs
+			else{	
 				if((locAtIndexAbove.location && __.isPitchInStrikeZone(locAtIndexAbove.location) && pitchInStrikeZone) || 
 				  	(locAtIndexAbove.location && !__.isPitchInStrikeZone(locAtIndexAbove.location) && !pitchInStrikeZone)){
 					finalLocation = locAtIndexAbove;
-					indexDifference = determinedLocation.index - locAtIndexAbove.index;
+					indexDifference = (determinedLocation.index - locAtIndexAbove.index);
 				}
 				
 				if((locAtIndexBelow.location && __.isPitchInStrikeZone(locAtIndexBelow.location) && pitchInStrikeZone) || 
 				  	(locAtIndexBelow.location && !__.isPitchInStrikeZone(locAtIndexBelow.location) && !pitchInStrikeZone)){
 					//only set to this loc if it's index is closer to the orig randomly generated num than locAtIndexAbove's index
 					//OR if locAtIndexAbove wasn't set to be the location
-					if(indexDifference > Math.abs(determinedLocation.index - locAtIndexBelow.index) || !indexDifference){
+					if((indexDifference > Math.abs(determinedLocation.index - locAtIndexBelow.index)) || !indexDifference){
 						finalLocation = locAtIndexBelow;
 					}
 				}
@@ -100,28 +111,16 @@ module.exports = function(module){
 		function determineLocationAndMore(){
 			var location = __.getRandomDecimalInclusive(0, 100, 1);
 			var locationValues;
-			var countPosition = __.pitcherCountPosition(gamePlayService.balls(), gamePlayService.strikes());
 			var pitchTypeIndex = 0;
 			var maxCountLogicPercentage = 0;
+			//ahead, behind or even
+			var countPosition = __.pitcherCountPosition(gamePlayService.balls(), gamePlayService.strikes());
 
-			//************* as batter, vs (e.g.) L as L *************
-
-			if((pitcher.handedness === appConstants.LEFT) && (batter.handedness === appConstants.LEFT)){
-				pitch.atBatHandedness = 'LL';
-				locationValues = pitchConstants.LL_PITCH;
-			}
-			else if((pitcher.handedness === appConstants.RIGHT) && (batter.handedness === appConstants.LEFT)){
-				pitch.atBatHandedness = 'RL';
-				locationValues = pitchConstants.RL_PITCH;
-			}
-			else if((pitcher.handedness === appConstants.LEFT) && (batter.handedness === appConstants.RIGHT)){
-				pitch.atBatHandedness = 'LR';
-				locationValues = pitchConstants.LR_PITCH;
-			}
-			else if((pitcher.handedness === appConstants.RIGHT) && (batter.handedness === appConstants.RIGHT)){
-				pitch.atBatHandedness = 'RR';
-				locationValues = pitchConstants.RR_PITCH;
-			}
+			//as [handedness]-batter vs [pitcher-handedness] (e.g. as L vs L)
+			if(pitcher.handedness === appConstants.LEFT) pitch.atBatHandedness = ((batter.handedness === appConstants.RIGHT) ? 'RL' : 'LL');
+			else pitch.atBatHandedness = ((batter.handedness === appConstants.RIGHT) ? 'RR' : 'LR');
+			
+			locationValues = pitchConstants[pitch.atBatHandedness + '_PITCH'];
 	
 			for(var i = 0; i < locationValues.length; i++){
 				if(location <= locationValues[i].index){
@@ -136,21 +135,21 @@ module.exports = function(module){
 					};
 
 					var locAtIndexAbove = {
-						location: "",
-						swingPerc: "",
-						contactPerc: "",
-						cStrikePerc: "",
-						index: "",
+						location: '',
+						swingPerc: '',
+						contactPerc: '',
+						cStrikePerc: '',
+						index: '',
 						pitchTypePerc: null,
 						pitchTypeSwingPerc: null
 					};
 
 					var locAtIndexBelow = {
-						location: "",
-						swingPerc: "",
-						contactPerc: "",
-						cStrikePerc: "",
-						index: "",
+						location: '',
+						swingPerc: '',
+						contactPerc: '',
+						cStrikePerc: '',
+						index: '',
 						pitchTypePerc: null,
 						pitchTypeSwingPerc: null
 					};
@@ -177,14 +176,9 @@ module.exports = function(module){
 						locAtIndexBelow.pitchTypeSwingPerc = locationValues[i + 1].pitchTypeSwingPerc;
 					}
 
-					//get avg % pitch is in or out of zone for this count
-					//generate random num for whether pitch should be in zone/out of zone
-					//if above determined loc already agrees, do nothing
-					//else look at the locations at index below and above (if they are defined) and see if they agree
-					//grab the closer (index-wise) agreeing location (if either agree; if not, do nothing)
 					applyCountLogicToPitchLoc(determinedLocation, locAtIndexAbove, locAtIndexBelow);
 
-					//only consider pitches pithcer throws for type count logic
+					//only consider pitches the pitcher throws for type count logic
 					_.each(pitch.pitchTypePercentages, function(pitchTypeCountPercentages, pitchType){
 						var pitchTypePercProperty = pitchConstants.PITCH_TYPE_PERCENTAGES[pitchType];
 						var pitcherThrowsPitch = (pitcher[pitchTypePercProperty] > 0);
@@ -209,8 +203,7 @@ module.exports = function(module){
 						}
 					});
 
-					//issue seen where this finalPitchType was undefined later on and maybe due to this being undefined;
-					//default it to FB
+					//issue seen where this finalPitchType was undefined later on and maybe due to this being undefined so default it to fastball
 					if(!pitch.countLogicPitchType) pitch.countLogicPitchType = pitchConstants.PITCH_TYPES.FASTBALL;
 
 					return pitch.location;
@@ -219,18 +212,22 @@ module.exports = function(module){
 
 		}
 
+		/**
+		 * Determines if the pitch type determined by taking the current count into consideration should be set as the final pitch type over the type determined by pitcher's arsenal.
+		 */
 		function countLogicOverridesArsenal(pitchTypeNum, arsenalPercentage, arsenalPercentageMin, arsenalPercentageMax){
 			var adjustedPitchTypeNum = ((pitch.countLogicNum + pitchTypeNum) / 2);
 			var belowMin = adjustedPitchTypeNum <= arsenalPercentageMin;
 			var aboveMax = adjustedPitchTypeNum > arsenalPercentageMax;
 
-			return (belowMin || aboveMax) && arsenalPercentage > 0;	
+			return ((belowMin || aboveMax) && arsenalPercentage > 0);	
 		}
 
+		/**
+		 * Determines by chance that the batter is hit by pitch and that the pitch thrown is in a location that would hit the batter.  Lower quality pitches have a higher chance of hitting batter.
+		 */
 		function checkForHitByPitch(){
 			if(_.includes(pitchConstants.HBP_LOCATIONS, pitch.location)){
-				//more chance of happening if quality is lower
-
 				var hitByPitchChance = pitchConstants.HIT_BY_PITCH;
 				var hitByPitchNum = __.getRandomDecimalInclusive(0, 100, 2);
 				var hitByPitchQualityNum = __.getRandomDecimalInclusive(pitchConstants.MIN_QUAL_FOR_HBP_CHECK, pitchConstants.MAX_QUAL_FOR_HBP_CHECK, 2);
@@ -242,6 +239,9 @@ module.exports = function(module){
 			}
 		}
 
+		/**
+		 * Creates a pitch and all of its properties for a play.
+		 */
 		function generatePitch(){
 			//clear out pitch from last play
 			pitch = {};
@@ -250,9 +250,9 @@ module.exports = function(module){
 			batter = gamePlayService.getBatter();
 			var pitchTypeNum = __.getRandomDecimalInclusive(0, 100, 2);
 			var location = determineLocationAndMore();
+			var finalPitchType = '';
 			var velocity = 0;
 			var pitchRating = 0;
-			var finalPitchType = '';
 			var arsenalPercentage = 0;
 			var arsenalPercentageMin = 0;
 			var arsenalPercentageMax = 0;
@@ -285,13 +285,13 @@ module.exports = function(module){
 				arsenalPercentageMax = pitcher.fastballPercentage;
 				finalPitchType = pitchConstants.PITCH_TYPES.FASTBALL;
 			}
-			else if(pitchTypeNum <= pitcher.fastballPercentage + pitcher.sliderPercentage){
+			else if(pitchTypeNum <= (pitcher.fastballPercentage + pitcher.sliderPercentage)){
 				arsenalPercentage = pitcher.sliderPercentage;
 				arsenalPercentageMin = pitcher.fastballPercentage;
 				arsenalPercentageMax = arsenalPercentageMin + pitcher.sliderPercentage;
 				finalPitchType = pitchConstants.PITCH_TYPES.SLIDER;
 			}
-			else if(pitchTypeNum <= pitcher.fastballPercentage + pitcher.sliderPercentage + pitcher.curveballPercentage){
+			else if(pitchTypeNum <= (pitcher.fastballPercentage + pitcher.sliderPercentage + pitcher.curveballPercentage)){
 				arsenalPercentage = pitcher.curveballPercentage;
 				arsenalPercentageMin = pitcher.fastballPercentage + pitcher.sliderPercentage;
 				arsenalPercentageMax = arsenalPercentageMin + pitcher.curveballPercentage;
@@ -308,7 +308,7 @@ module.exports = function(module){
 				finalPitchType = pitch.countLogicPitchType;
 			}
 
-			//issue seen once in a million pitches where finalPitchType was somehow undefined here; default it to FB
+			//issue seen once in a million pitches where finalPitchType was somehow undefined here so default it to fastball
 			if(!finalPitchType) pitch.finalPitchType = pitchConstants.PITCH_TYPES.FASTBALL;
 
 			if(pitchTypes[finalPitchType].pitchSubType){
@@ -319,8 +319,8 @@ module.exports = function(module){
 			pitch.pitchVelocity = pitchTypes[finalPitchType].velocity;
 			pitch.pitchQuality = pitchTypes[finalPitchType].quality;
 
-			//if throwing o-zone pitch with 3 balls and qual is good enough, determine loc again to try and get a zone to avoid a walk
-			if(gamePlayService.balls() === 3 && !__.isPitchInStrikeZone(location) && pitch.pitchQuality > (pitchConstants.MAX_QUAL_FOR_CSTRIKE_CHECK / 2)){
+			//if throwing out of zone pitch with 3 balls and quality is good enough, determine loc again to try and get a zone loc to avoid a walk
+			if((gamePlayService.balls() === 3) && !__.isPitchInStrikeZone(location) && (pitch.pitchQuality > (pitchConstants.MAX_QUAL_FOR_CSTRIKE_CHECK / 2))){
 				determineLocationAndMore();
 			}
 

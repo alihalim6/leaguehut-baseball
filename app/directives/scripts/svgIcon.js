@@ -1,3 +1,6 @@
+/**
+ * Utility directive that compiles SVGs and appends them to the DOM.
+ */
 module.exports = function(module){
 	module.directive('svgIcon', svgIcon);
 
@@ -23,6 +26,7 @@ module.exports = function(module){
 				var source = scope.$eval(attributes.svgUrl);
 				processIcon(source);
 
+				//handle instances where an SVG takes time to be ready for processing after being fetched at its url
 				scope.$watch('iconSource', processIcon);
 			}
 		}

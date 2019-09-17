@@ -1,3 +1,6 @@
+/**
+ * Component for the gameplay page.
+ */
 module.exports = function(module){
 	module.component('gamePlay', {
 		template: require('../views/gamePlay.html'),
@@ -13,393 +16,26 @@ module.exports = function(module){
 		}
 	});
 
-	function gamePlayCtrl(appUtility, gamePlayService, appConstants, pitchConstants, battingConstants, pitchService, battingService, fieldingService, baseRunningService, playByPlayService, $timeout, $compile){
+	function gamePlayCtrl(appUtility, gamePlayService, appConstants, pitchConstants, battingConstants, teamsService, pitchService, battingService, fieldingService, baseRunningService, playByPlayService, $timeout, $compile){
 		var __ = appUtility;
 
-		this.setUpTeamStats = function(){
-			_.each(this.gameTeams, function(team){
-				team.atBatIndex = 0;
-                team.pitchersBroughtIn = 0;
-                team.currentPitcherScoreDeficit = {};
-
-				team.inningScores = {
-					'1' : 0,
-					'2' : 0,
-					'3' : 0,
-					'4' : 0,
-					'5' : 0,
-					'6' : 0,
-					'7' : 0,
-					'8' : 0,
-					'9' : 0
-				};
-
-				//these totals sit underneath player box score stats
-				team.battingTotals = {
-					totals : 'TEAM TOTALS',
-					totalABs : 0,
-					totalRuns : 0,
-					totalHits : 0,
-					totalBases : ' ',
-					totalRbis : ' ',
-					totalHRs : 0,
-					totalWalks : 0,
-					totalStrikeOuts : 0,
-					totalLob : 0
-				},
-
-				team.totalErrors = 0
-
-				team.batting = {
-					doubles : [],
-					triples : [],
-					twoOutRbis : [],
-					leftRISPwithTwoOut : [],
-					sacFlys : [],
-					sacBunts : [],
-					GIDP : [],
-					HR : [],
-					SB : [],
-					CS : [],
-					hitsWithRISP : 0,
-					atBatsWithRISP : 0
-				}
-			});
-		}
-
-		this.setUpBoxScore = function(){
-			var teamIndex = 0;
-			this.playerBattingCategories = [' ', 'AB', 'R', 'H', 'TB', 'RBI', 'HR', 'BB', 'SO', 'LOB', 'E'];
-			this.teamBattingCategories = [
-				{
-					label: 'DOUBLES',
-					id: appConstants.STATS_DISPLAY.DOUBLES
-				},
-				{
-					label: 'TRIPLES',
-					id: appConstants.STATS_DISPLAY.TRIPLES
-				},
-				{
-					label: 'HOMERUNS',
-					id: appConstants.STATS_DISPLAY.HOMERUNS
-				},
-				{
-					label: '2-OUT RBIs',
-					id: appConstants.STATS_DISPLAY.TWO_OUT_RBIS
-				},
-				{
-					label: 'LEFT RISP w/ 2 OUTS',
-					id: appConstants.STATS_DISPLAY.LEFT_RISP_WITH_TWO_OUTS
-				},
-				{
-					label: 'TEAM W/ RISP',
-					id: appConstants.STATS_DISPLAY.HITTING_WITH_RISP,
-					displayDirectValue: true
-				},
-				{
-					label: 'SAC FLYS',
-					id: appConstants.STATS_DISPLAY.SAC_FLYS
-				},
-				{
-					label: 'GIDP',
-					id: appConstants.STATS_DISPLAY.GIDP
-				},
-				{
-					label: 'STOLEN BASES',
-					id: appConstants.STATS_DISPLAY.STOLEN_BASES
-				},
-				{
-					label: 'CAUGHT STEALING',
-					id: appConstants.STATS_DISPLAY.CAUGHT_STEALING
-				}
-			];
-			this.pitchingCategories = [' ', 'IP', 'H', 'R', 'BB', 'K', 'PITCHES'];
-			this.pitcherGameStats = [
-				{
-					label: 'IP',
-					id: appConstants.STATS_DISPLAY.INNINGS_PITCHED
-				},
-				{
-					label: 'H',
-					id: appConstants.STATS_DISPLAY.HITS_ALLOWED
-				},
-				{
-					label: 'R',
-					id: appConstants.STATS_DISPLAY.RUNS_ALLOWED
-				},
-				{
-					label: 'BB',
-					id: appConstants.STATS_DISPLAY.BATTERS_WALKED
-				},
-				{
-					label: 'K',
-					id: appConstants.STATS_DISPLAY.BATTERS_STRUCK_OUT
-				},
-				{
-					label: 'PITCHES',
-					id: appConstants.STATS_DISPLAY.PITCHES
-				}
-			];
-
-			this.teamPitchingCategories = [
-				{
-					label: 'PITCHES',
-					id: appConstants.STATS_DISPLAY.PITCHES
-				},
-				{
-					label: 'TOTAL STRIKES',
-					id: appConstants.STATS_DISPLAY.TOTAL_STRIKES
-				},
-				{
-					label: 'CALLED',
-					id: appConstants.STATS_DISPLAY.CALLED_STRIKES,
-					subStat: true
-				},
-				{
-					label: 'SWINGING',
-					id: appConstants.STATS_DISPLAY.SWINGING_STRIKES,
-					subStat: true
-				},
-				{
-					label: 'FOUL',
-					id: appConstants.STATS_DISPLAY.FOUL_STRIKES,
-					subStat: true
-				},
-				{
-					label: 'IN PLAY',
-					id: appConstants.STATS_DISPLAY.BALLS_PUT_INTO_PLAY,
-					subStat: true
-				},
-				{
-					label: 'GROUNDOUTS',
-					id: appConstants.STATS_DISPLAY.GROUNDOUTS
-				},
-				{
-					label: 'FLYOUTS',
-					id: appConstants.STATS_DISPLAY.FLYOUTS
-				},
-				{
-					label: 'BATTERS FACED',
-					id: appConstants.STATS_DISPLAY.BATTERS_FACED
-				},
-				{
-					label: 'FIRST PITCH STRIKES',
-					id: appConstants.STATS_DISPLAY.FIRST_PITCH_STRIKES
-				}
-			];
-
-			_.each(this.gameTeams, function(team, index){
-				teamIndex = index;
-
-				_.each(team.players, function(player){
-					player.plateAppearances = 0;
-					player.atBats = 0;
-					player.hits = 0;
-					player.errors = 0;
-					player.totalBases = 0;
-					player.rbis = 0;
-					player.runs = 0;
-					player.walks = 0;
-					player.strikeOuts = 0;
-					player.lob = 0;
-					player.singles = 0;
-					player.doubles = 0;
-					player.triples = 0;
-					player.twoOutRbis = 0;
-					player.leftRISPwithTwoOut = 0;
-					player.sacFlys = 0;
-					player.sacBunts = 0;
-					player.GIDP = 0;
-					player.HR = 0;
-					player.SB = 0;
-					player.CS = 0;
-					player.hitByPitch = 0;
-
-					player.statDisplay = {};
-
-					if(player.position === appConstants.GAME_PLAY.POSITIONS.PITCHER){
-						player.pitches = 0;
-						player.inningsPitched = 0.0;
-						player.hitsAllowed = 0;
-						player.runsAllowed = 0;
-						player.battersWalked = 0;
-						player.battersStruckOut = 0;
-						player.battersHitByPitch = 0;
-						player.homeRunsAllowed = 0;
-						player.groundOuts = 0;
-						player.flyOuts = 0;
-						player.battersFaced = 0;
-						player.totalStrikes = 0;
-						player.firstPitchStrikes = 0;
-						player.calledStrikes = 0;
-						player.swingingStrikes = 0;
-						player.foulBalls = 0;
-						player.ballsPutIntoPlay = 0;
-
-						//TODO: allow these to by tallied in extra innings
-
-						player.walksAllowedByInning = {
-							'1' : 0,
-							'2' : 0,
-							'3' : 0,
-							'4' : 0,
-							'5' : 0,
-							'6' : 0,
-							'7' : 0,
-							'8' : 0,
-							'9' : 0
-						};
-
-						player.homeRunsAllowedByInning = {
-							'1' : 0,
-							'2' : 0,
-							'3' : 0,
-							'4' : 0,
-							'5' : 0,
-							'6' : 0,
-							'7' : 0,
-							'8' : 0,
-							'9' : 0
-						};
-
-						player.hitsAllowedByInning = {
-							'1' : 0,
-							'2' : 0,
-							'3' : 0,
-							'4' : 0,
-							'5' : 0,
-							'6' : 0,
-							'7' : 0,
-							'8' : 0,
-							'9' : 0
-						};
-
-						player.runsAllowedByInning = {
-							'1' : 0,
-							'2' : 0,
-							'3' : 0,
-							'4' : 0,
-							'5' : 0,
-							'6' : 0,
-							'7' : 0,
-							'8' : 0,
-							'9' : 0
-						};
-
-						var pitcherChangeEvaluation = function(params){
-							var justPitched = (params.defense.id === this.teamId);
-							var makeChange = false;
-							var badPerformance = false;
-							var currentInning = Math.floor(params.inning);
-							var threeInningsAgo = ((params.inning >= 4) ? (currentInning - 3) : 0);
-							var twoInningsAgo = ((params.inning >= 3) ? (currentInning - 2) : 0);
-							var oneInningAgo = ((params.inning >= 2) ? (currentInning - 1) : 0);
-
-							var walksStrikeoutsDelta = (this.battersWalked - this.battersStruckOut);
-							var homeRunsAllowedDelta = (this.homeRunsAllowedByInning[currentInning] * pitchConstants.PERFORMANCE_WEIGHT.HR);
-							var hitsAllowedDelta = (this.hitsAllowedByInning[currentInning] * pitchConstants.PERFORMANCE_WEIGHT.HITS);
-							var walksAllowedDelta = (this.walksAllowedByInning[currentInning] * pitchConstants.PERFORMANCE_WEIGHT.WALKS);
-							var runsAllowedCurrentInningDelta = (this.runsAllowedByInning[currentInning] * pitchConstants.PERFORMANCE_WEIGHT.RUNS_CURRENT_INNING);
-							var deficitDelta = (params.defense.currentPitcherScoreDeficit[this.id] * pitchConstants.PERFORMANCE_WEIGHT.DEFICIT);
-							var runsAllowedPreviousInningsDelta = 0;
-							var hitsAllowedPreviousInningsDelta = 0;
-							var walksAllowedPreviousInningsDelta = 0;
-
-							if(threeInningsAgo) runsAllowedPreviousInningsDelta += (this.runsAllowedByInning[threeInningsAgo] * pitchConstants.PERFORMANCE_WEIGHT.RUNS_PREV_INNINGS);
-							
-							if(twoInningsAgo){
-								runsAllowedPreviousInningsDelta += (this.runsAllowedByInning[twoInningsAgo] * pitchConstants.PERFORMANCE_WEIGHT.RUNS_PREV_INNINGS);
-								hitsAllowedPreviousInningsDelta += (this.hitsAllowedByInning[twoInningsAgo] * pitchConstants.PERFORMANCE_WEIGHT.HITS_PREV_INNINGS);
-							}
-
-							if(oneInningAgo){
-								runsAllowedPreviousInningsDelta += (this.runsAllowedByInning[oneInningAgo] * pitchConstants.PERFORMANCE_WEIGHT.RUNS_PREV_INNINGS);
-								hitsAllowedPreviousInningsDelta += (this.hitsAllowedByInning[oneInningAgo] * pitchConstants.PERFORMANCE_WEIGHT.HITS_PREV_INNINGS);
-								walksAllowedPreviousInningsDelta += (this.walksAllowedByInning[oneInningAgo] * pitchConstants.PERFORMANCE_WEIGHT.WALKS_PREV_INNINGS);
-							}
-
-							console.log('P performance: ' + (walksStrikeoutsDelta + homeRunsAllowedDelta + hitsAllowedDelta + walksAllowedDelta + runsAllowedCurrentInningDelta 
-								+ deficitDelta + runsAllowedPreviousInningsDelta + hitsAllowedPreviousInningsDelta + walksAllowedPreviousInningsDelta));
-
-							badPerformance = (__.getRandomIntInclusive(pitchConstants.BAD_PERFORMANCE_MIN, pitchConstants.BAD_PERFORMANCE_MAX) <= 
-								(walksStrikeoutsDelta + homeRunsAllowedDelta + hitsAllowedDelta + walksAllowedDelta + runsAllowedCurrentInningDelta 
-									+ deficitDelta + runsAllowedPreviousInningsDelta + hitsAllowedPreviousInningsDelta + walksAllowedPreviousInningsDelta));
-
-							//take pitcher out if on inning end, he is (at or) above pitch count for game
-							//OR we've reached at least the end of the 8th or 9th
-							//OR he is not performing well
-							makeChange = ((params.inningEnded && justPitched && ((this.pitchCount && (this.pitches >= this.pitchCount)) || ((params.inning >= 8) && (params.inning < 10)))) || badPerformance);
-
-							return {
-								makeChange: makeChange,
-								changeOnInningEnd: (params.inningEnded || (!params.inningEnded && makeChange && (params.currentOuts === 2))),
-								dueToBadPerformance: badPerformance
-							};
-						};
-
-						if(player.depthPosition === 1){
-							player.active = true;
-							player.inactive = false;
-							player.isStartingPitcher = true;
-							player.pitchCount = __.determinePitchCountForGame(player.basePitchCount);
-							player.pitcherTypeToFollow = appConstants.GAME_PLAY.POSITIONS.MR;
-							player.takePitcherOut = pitcherChangeEvaluation;
-
-							team.startingPitcher = player;
-						}
-						else{
-							if(player.depthPosition === 2){
-								player.isMiddleReliever = true;
-
-								//change to closer
-								/*player.takePitcherOut = function(params){
-									var justPitched = (defense.id === this.teamId);
-									var laterInningsMin = 7;
-									var laterInningsMax = 8.5;
-									var bool1 = chance.bool();
-									var bool2 = chance.bool();
-									var makeChange = (bool1 && bool2);
-
-									//take MR out if manager decided to take this pitcher out after he just pitched one of the later innings
-									//OR he just pitched the 8th
-									return (params.inningEnded && (((params.inning >= laterInningsMin) && (params.inning < laterInningsMax) && makeChange) || (params.inning >= laterInningsMax)) && justPitched);
-								};*/
-								player.takePitcherOut = pitcherChangeEvaluation;
-
-								team.middleReliever = player;
-							}
-
-							if(player.depthPosition === 3){
-								player.isCloser = true;
-								player.takePitcherOut = function(){
-									return {makeChange: false};
-								};
-
-								team.closer = player;
-							}
-
-							player.active = false;
-							player.inactive = true;
-						}
-					}
-
-					player.x = appConstants.GAME_PLAY.POSITION_PROFILE[player.position].x;
-					player.y = appConstants.GAME_PLAY.POSITION_PROFILE[player.position].y;
-					player.infield = appConstants.GAME_PLAY.POSITION_PROFILE[player.position].infield;
-					player.fieldSide = appConstants.GAME_PLAY.POSITION_PROFILE[player.position].fieldSide;
-				});
-			});
-
-		}
-
+		/**
+		 * Opens the team stats modal.
+		 */
 		this.showTeamStatsModal = function(){
 			$('#teamStatsModal').show();
 		}
 
+		/**
+		 * Closes the team stats modal.
+		 */
 		this.closeTeamStatsModal = function(){
 			$('#teamStatsModal').hide();
 		}
 
+		/**
+		 * Fades in then out the velocity and pitch type of the pitch thrown in place of the count.
+		 */
 		this.animatePitchResultingCount = function(){
 			$('#currentCount').hide();
 			$('#pitchThrown').show();
@@ -413,6 +49,9 @@ module.exports = function(module){
 			}, appConstants.GAME_PLAY.PITCH_RESULTING_COUNT_ANIMATION_TIME, true, {scope: this});
 		}
 
+		/**
+		 * Fades in a ball at the appropriate location in the strike zone view based on pitch type, location and result.
+		 */
 		this.animatePitch = function(pitch, battingResults){
 			var ballElement = '<div class="pitch-thrown-ball" id="pitchThrownBall' + this.pitcher.pitches + '"></div>';
 			var animationContainer = (pitch.hitByPitch ? '.batter-silhouette' : '#strikeZone');
@@ -437,6 +76,7 @@ module.exports = function(module){
 				return _.includes(config.locations, locationKey);
 			});
 
+			//get adjustment for animation when umpire miscalls a pitch
 			var potentialMiscalledPitchReposition = _.find(pitchConstants.MISCALLED_PITCH_REPOSITION, function(config){
 				return _.includes(config.locations, locationKey);
 			});
@@ -444,7 +84,6 @@ module.exports = function(module){
 
 			//SET KEYFRAME
 
-			//HBP
 			if(pitch.hitByPitch){
 				strikeZoneResult = 'hit-by-pitch';
 				$(pitchThrownBall).addClass('hit-by-pitch-ball');
@@ -495,10 +134,10 @@ module.exports = function(module){
 			    keyframeRules = keyframe.cssRules;
 
 			    //clear any previously inserted rules for this keyframe
-			    for(var i = 0; i < keyframeRules.length; i++){
+			    _.each(keyframeRules, function(){
 			    	keyframe.deleteRule('0%');
 			    	keyframe.deleteRule('100%');
-				}
+				});
 
 				//BORDER
 				$(pitchThrownBallElement).css('border-color', appConstants.GAME_PLAY.STRIKE_ZONE_BALL_COLORS[_.camelCase(strikeZoneResult)]);
@@ -535,6 +174,7 @@ module.exports = function(module){
 			    initialPitchXY = {
 			    	x: (finalPitchXY.x + (xMovementMultiplier * __.getRandomDecimalInclusive(pitchMovementRanges.horizontal.min, pitchMovementRanges.horizontal.max, 5))),
 			    	//vertical movement is always down so initial y is lower (subtracted)
+			    	//TODO: allow rising pitches
 			    	y: (finalPitchXY.y - __.getRandomDecimalInclusive(pitchMovementRanges.vertical.min, pitchMovementRanges.vertical.max, 5))
 			    }
 
@@ -564,22 +204,37 @@ module.exports = function(module){
 			}
 		}
 
+		/**
+		 * Opens an info modal for the given player.
+		 */
 		this.handleShowPlayerInfo = function(team, playerId){
 			this.showPlayerInfo(team, playerId);
 		}
 
+		/**
+		 * Sets the current list of play calls displayed to be for the given inning.
+		 */
 		this.setCurrentPlayByPlayInning = function(inning){
 			this.currentPlayByPlaySelected = inning;
 		}
 
+		/**
+		 * Clears out the headshot from the current batter element.
+		 */
 		this.handleCurrentBatterCard = function(){
 			$('.current-batter').find('.face').remove();
 		}
 
+		/**
+		 * Clears out the headshot from the current pitcher element.
+		 */
 		this.handleCurrentPitcherCard = function(){
 			$('.current-pitcher').find('.face').remove();
 		}
 
+		/**
+		 * Sets up necessary variables and data at the beginning of each play.
+		 */
 		this.setUpPlay = function(){
 			if(this.newBatter){
 				this.handleCurrentBatterCard();
@@ -603,48 +258,46 @@ module.exports = function(module){
 			if(!this.defense.currentPitcherScoreDeficit[this.pitcher.id]) this.defense.currentPitcherScoreDeficit[this.pitcher.id] = 0;
 
 			baseRunningService.resetResults();
-			gamePlayService.setInningEnded(false);
+			gamePlayService.resetInning();
 		}
 
+		/**
+		 * Runs a play.
+		 */
 		this.runPlay = function(){			
 			var outsBeforePlay = this.currentOuts;
 			var basesStatusBeforePlay = this.currentBases;
-			var stealAttempt = false;
-			var sacrificeFly = false;
-			var stealAttemptFailedFor3rdOut = false;
 			var offenseScoreBeforePlay = this.offense.battingTotals.totalRuns;
 			var defenseScoreBeforePlay = this.defense.battingTotals.totalRuns;
 			var ballsBeforePlay = gamePlayService.balls();
 			var strikesBeforePlay = gamePlayService.strikes();
 			var transitionTimeout = 0;
-			var pitcherChange = null;
+			var stealAttempt = false;
+			var sacrificeFly = false;
+			var stealAttemptFailedFor3rdOut = false;
 			var inningEndPitcherChange = false;
+			var pitcherChange = null;
 			var thisPlay = {};
 
 			$timeout(function(params){
 				var scope = params.scope;
 
 				var pitch = pitchService.generatePitch();
-				console.log(pitch);
-				console.log(pitch.location);
-
+				//console.log(pitch);
+				//console.log(pitch.location);
 				var stealAttempt = baseRunningService.checkForBaseStealing(pitch.atBatHandedness);
-
-				var battingResults = battingService.handleBatter(pitch);
-				console.log(battingResults);
+				var battingResults = battingService.handleBatter(pitch, stealAttempt);
+				//console.log(battingResults);
 
 				if(battingResults.fouledAway || battingResults.putIntoPlay || battingResults.hitByPitchOrWalk){
 					stealAttempt = false;
 				}
 
 				var fieldingResults = fieldingService.fieldBall(battingResults);
-				console.log(fieldingResults);
-
+				//console.log(fieldingResults);
 				var baseRunningResults = baseRunningService.getResults();
-				console.log(baseRunningResults);
-
-				console.log(gamePlayService.balls() + '-' + gamePlayService.strikes());
-
+				//console.log(baseRunningResults);
+				//console.log(gamePlayService.balls() + '-' + gamePlayService.strikes());
 				var inningEnded = gamePlayService.hasInningEnded();
 
 				if(inningEnded) stealAttempt = false;
@@ -659,6 +312,7 @@ module.exports = function(module){
 					inningEnded = gamePlayService.hasInningEnded();
 					stealAttemptFailedFor3rdOut = inningEnded;
 				}
+
 
 
 
@@ -687,15 +341,13 @@ module.exports = function(module){
 				}
 
 				//GROUNDOUTS (FLYOUTS HANDLED IN FIELDING SERVICE)
-				if(baseRunningResults.playersThrownOut && (baseRunningResults.playersThrownOut.length > 0) 
-					&& (battingResults.battedBallType === battingConstants.BATTED_BALL_TYPES.GROUND_BALL) && __.batterThrownOutAt1st(scope.batter, baseRunningResults.playersThrownOut)){
+				if(baseRunningResults.playersThrownOut && (battingResults.battedBallType === battingConstants.BATTED_BALL_TYPES.GROUND_BALL) && __.batterThrownOutAt1st(scope.batter, baseRunningResults.playersThrownOut)){
 					gamePlayService.handleGroundOutsFlyOuts(appConstants.GROUND_OUT_INDICATOR);
 				}
 
+				//BATTERS FACED
 				if(scope.newBatter === undefined || scope.newBatter){
-					scope.plateAppearancePitchNumber = 1;
-
-					//BATTERS FACED
+					scope.plateAppearancePitchNumber = 1;	
 					scope.pitcher.battersFaced++;
 				}
 				else{
@@ -711,6 +363,7 @@ module.exports = function(module){
 				}
 
 				var currentBaseRunners = baseRunningService.getBaseRunners();
+				var nextBatter = gamePlayService.getBatter();
 
 				//HITS
 				if(battingResults.putIntoPlay && !fieldingResults.ballCaught){
@@ -721,14 +374,13 @@ module.exports = function(module){
 						fieldersChoice : fieldersChoice, 
 						baseBatterAdvancedTo : fieldingResults.baseBatterAdvancedTo, 
 						runnersOnBeforePlay : basesStatusBeforePlay.code,
-						inTheParkHR : baseRunningResults.inTheParkHR
+						inTheParkHR : baseRunningResults.inTheParkHR,
+						errorOnPlay: fieldingResults.errorOnPlay
 					});
 				}
 
-				var nextBatter = gamePlayService.getBatter();
-
+				//AT BATS/PAs
 				if((scope.batter.id !== nextBatter.id) || stealAttemptFailedFor3rdOut){
-					//AT BATS/PAs
 					if(!stealAttemptFailedFor3rdOut){
 						gamePlayService.handlePlateAppearance(scope.batter, __.validAtBat(battingResults, fieldingResults, sacrificeFly), basesStatusBeforePlay.code);
 					}
@@ -744,13 +396,9 @@ module.exports = function(module){
 				if(outsBeforePlay !== gamePlayService.outs()){
 					var baseRunnersStatus = baseRunningService.getBaseRunnersStatus();
 					var basesOccupied = baseRunnersStatus.code;
-					//couldn't use code for runnersCurrentlyOn for scenario when runner who went home 
-					//is set back a base on inning end (see updateBaseRunners);
-					//when this happens, and a diff runner went to 3rd, the details.code sees 1 runner on 3rd even
-					//though there are 2, after setting the former runner back a base
 					var runnersCurrentlyOn = currentBaseRunners.length;
-
 					var leftRISPwithTwoOut = (__.RISP(basesOccupied) && (outsBeforePlay === 2));
+
 					gamePlayService.handleLOB(scope.batter, runnersCurrentlyOn, leftRISPwithTwoOut);	
 				}
 				else if(battingResults.homeRun){
@@ -804,7 +452,7 @@ module.exports = function(module){
 					scope.currentOuts = (inningEnded && (outsBeforePlay && (gamePlayService.outs() === 0)) ? 3 : gamePlayService.outs());
 					scope.currentBases = baseRunningService.getBaseRunnersStatus();
 
-					console.log(scope.currentBases);
+					//console.log(scope.currentBases);
 
 					if(scope.newBatter) scope.batter.gameStatLine = __.generatePlayerGameStatLine(scope.batter);
 				}, appConstants.GAME_PLAY.PAUSE_FOR_PLAY_BY_PLAY);
@@ -819,7 +467,7 @@ module.exports = function(module){
 					return team.battingTotals.totalRuns;
 				});
 
-				console.log('inning: ' + scope.currentInningForDisplay);
+				//console.log('inning: ' + scope.currentInningForDisplay);
 
 				//INNING (HALF) END
 				if(inningEnded){
@@ -841,7 +489,7 @@ module.exports = function(module){
 						scope.gamePlayElement.style.webkitAnimation = 'in-game-transition ' + appConstants.GAME_PLAY.INNING_END_TRANSITION_TIME + 'ms ease-in';
 						scope.gamePlayElement.style.animation = 'in-game-transition ' + appConstants.GAME_PLAY.INNING_END_TRANSITION_TIME + 'ms ease-in';
 
-						//refresh view when opacity is 0
+						//refresh view when opacity is 0 (after INNING_END_TRANSITION_TIME)
 						$timeout(function(){
 							if(baseRunningResults.clearBases) baseRunningService.clearBases();
 
@@ -881,7 +529,7 @@ module.exports = function(module){
 						scope.gamePlayElement.style.webkitAnimation = 'in-game-transition ' + appConstants.GAME_PLAY.SHORT_TRANSITION_TIME + 'ms ease-in';
 						scope.gamePlayElement.style.animation = 'in-game-transition ' + appConstants.GAME_PLAY.SHORT_TRANSITION_TIME + 'ms ease-in';
 
-						//refresh view when opacity is 0
+						//refresh view when opacity is 0 (after SHORT_TRANSITION_TIME)
 						$timeout(function(){
 							if(pitcherChange && !inningEndPitcherChange) scope.handleCurrentPitcherCard();
 
@@ -893,6 +541,7 @@ module.exports = function(module){
 
 				if(!scope.gameIsOver){
 					$timeout(function(){
+						//set up play from here if neither inning nor PA ended
 						if(!transitionTimeout) scope.setUpPlay();
 
 						scope.runPlay();
@@ -902,6 +551,9 @@ module.exports = function(module){
 			}, appConstants.GAME_PLAY.PAUSE_BETWEEN_PLAYS, true, {scope: this});
 		}
 
+		/**
+		 * Fades gameplay page in, sets offense and defense and sets other things up for a new game starting.
+		 */		
 		this.initializeGame = function(){
 			var beginGameAnimation = 'begin-game ' + appConstants.GAME_PLAY.SHORT_TRANSITION_TIME + 'ms linear forwards';
 			this.gamePlayElement = document.getElementById('gamePlay');
@@ -920,6 +572,9 @@ module.exports = function(module){
 			this.currentPlayByPlaySelected = this.currentInningForPlayByPlay;
 		}
 
+		/**
+		 * Handles user closing the game by clearing out this component's data.
+		 */
 		this.endGame = function(){
 			this.handleCurrentPitcherCard();
 			this.handleCurrentBatterCard();
@@ -932,13 +587,20 @@ module.exports = function(module){
 			this.gameInProgress = false;
 		}
 
-		/*
-		 * Initialize game (triggered on startGame being set to true).
+		/**
+		 * Initializes game (triggered on startGame being set to true) and throws the first pitch.
 		 */
 		this.$onChanges = function(){
 			if(this.gameInProgress){
-				this.setUpTeamStats();
-				this.setUpBoxScore();
+				teamsService.setUpTeamStats(this.gameTeams);
+
+				var boxScore = teamsService.setUpBoxScore(this.gameTeams);
+				this.playerBattingCategories = boxScore.playerBattingCategories;
+				this.teamBattingCategories = boxScore.teamBattingCategories;
+				this.pitchingCategories = boxScore.pitchingCategories;
+				this.pitcherGameStats = boxScore.pitcherGameStats;
+				this.teamPitchingCategories = boxScore.teamPitchingCategories;
+
 				this.initializeGame();
 				this.runPlay();
 			}

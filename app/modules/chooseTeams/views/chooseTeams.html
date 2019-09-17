@@ -1,3 +1,4 @@
+<!-- GAMEPLAY COMPONENT; DISPLAYS WHEN GAME IS IN PROGRESS -->
 <game-play 
 	start-game="gameInProgress" 
 	game-in-progress="gameInProgress" 
@@ -8,14 +9,17 @@
 	player-info="$ctrl.playerInfo">
 </game-play>
 
+<!-- CHOOSE TEAMS PAGE; HIDDEN WHEN GAME IS IN PROGRESS -->
 <div ng-if="!gameInProgress">
 	<player-info-modal class="player-info-modal-container" id="playerInfoChooseTeams"></player-info-modal>
 
+	<!-- WELCOME -->
 	<div class="app-welcome">
-	 	Welcome to <span class="emphasize-bold">LeagueHut Baseball</span>! <br>
+	 	Welcome to <span class="emphasize-bold">LeagueHut Baseball</span>!<br>
 	 	Check out the teams and set your matchup by selecting two of them.
 	</div>
 
+	<!-- CHOSEN TEAMS -->
 	<div class="chosen-teams" ng-show="chosenTeams.length">
 	 	<div class="team-{{chosenTeams[0].id}}-font team-name-small" ng-class="{'special-team-name-small': (chosenTeams[0].id === 8)}">
 	 		{{chosenTeams[0].name}}
@@ -33,6 +37,7 @@
 	 	<div class="divider-line"></div>
 	</div>
 
+	<!-- TEAM SLIDES -->
 	 <ul class="choose-teams-carousel">
 		<li class="slide team-slide" ng-repeat="team in teams" ng-init="$slideIndex = $index">
 			<h1 class="team-name team-{{team.id}}-font">
@@ -41,6 +46,7 @@
 				<button ng-disabled="teamChosen[team.id]" ng-click="chooseTeam(team.id, team.name)" class="choose-team-button" ng-class="{'disable-choose-team': teamChosen[team.id]}">Select Team</button>
 			</h1>
 
+			<!-- PLAYER GRAPHIC, POSITIONED ON BACKGROUND FIELD ACCORDINGLY -->
 			<div class="player-on-field" ng-repeat="player in team.players"
 				ng-click="showPlayerInfo(team, player.id)"
 				ng-class="{'starting-pitcher': player.isStartingPitcher,
@@ -61,6 +67,7 @@
 				<div class="choose-teams-player-name secondary-color-background-{{team.id}}">{{player.fullName}}</div>
 				<div class="player-position">{{player.position}}</div>
 	 
+	 			<!-- PLAYER'S OVERALL RATING -->
 				<div class="player-rating-container">
 					<div class="player-rating">Rating</div>
 					<div class="player-rating-bar" ng-style="$ctrl.determineBarDisplay(team, player.id)">
@@ -69,12 +76,14 @@
 				</div>
 			</div>
 
+			<!-- BULLPEN -->
 			<div class="toggle-bullpen" ng-click="toggleBullpen()">
 				{{bullpenToggle}} Bullpen 
 				<svg-icon svg-url="'down_chevron'" ng-show="bullpenToggle === 'View'" class="toggle-bullpen-chevron"></svg-icon>
 				<svg-icon svg-url="'up_chevron'" ng-show="bullpenToggle === 'Hide'" class="toggle-bullpen-chevron"></svg-icon>
 			</div>
 
+			<!-- SLIDE NAVIGATION -->
 			<svg-icon svg-url="'left_chevron'" ng-click="prevSlide()" class="slide-nav-chevron"></svg-icon>
 			<svg-icon svg-url="'right_chevron'" ng-click="nextSlide()" class="slide-nav-chevron slide-nav-chevron-right"></svg-icon>
 		</li>

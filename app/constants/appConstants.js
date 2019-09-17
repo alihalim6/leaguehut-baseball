@@ -1,3 +1,6 @@
+/**
+ * General constants used throughout the application.
+ */
 module.exports = function(module){
 	module.constant('appConstants', {
 		BULLPEN_INITIAL_TOGGLE: 'View',

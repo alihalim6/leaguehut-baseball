@@ -1,3 +1,6 @@
+/**
+ * Generates all of the properties of the fielding result of a ball put into play.
+ */
 module.exports = function(module){
 	module.service('fieldingService', fieldingService);
 
@@ -18,6 +21,9 @@ module.exports = function(module){
 
 		return api;
 
+		/**
+		 * Returns all of the fielders who are in position to make a play on the ball.
+		 */		
 		function determinePlayersFieldingBall(fieldSideToExclude){
 			var fielders = [];
 
@@ -38,20 +44,32 @@ module.exports = function(module){
 			return fielders;
 		}
 
+		/**
+		 * Returns the defender at the given position.
+		 */		
 		function getDefender(_position){
 			return _.find(defenders, function(player){
 				return ((player.position === _position) && !player.inactive);
 			});
 		}
 
+		/**
+		 * Sorts defenders by who is closest to where the ball put into play will end up.
+		 */		
 		function sortByDistToFinal(a, b){
 			return (a.distanceToFinalBallDist - b.distanceToFinalBallDist);
 		}
 
+		/**
+		 * Sorts defenders by who will be closest to the ball when it passes their (x,y) position.
+		 */
 		function sortByDistToPassingPoint(a, b){
 			return (a.playerDistToBallPassingPoint - b.playerDistToBallPassingPoint);
 		}
 
+		/**
+		 * Annotates each potential throw to a base for an out attempt by whether or not it would be a force out.
+		 */
 		function markForceOuts(potentialPlaysToBeMade, basesBeingAdvancedTo){
 			_.each(potentialPlaysToBeMade, function(play){
 				//set to negative since _.sortBy is an ascending sort
@@ -59,15 +77,18 @@ module.exports = function(module){
 			});
 		}
 
+		/**
+		 * Determines the distance from home plate to the outfield wall based on the hit direction.
+		 */
 		function determineWallDistance(hitAngle, angles){
 			var hitSection = fieldingResults.hitSection;
 			var baseDistance;
 			var baseAngle;
 			var baseAngleDistDelta;
 			var wallDistance;
+			var foulPlayable = battingResults.fouledBallPlayable;
 			//see excel sheet; the distances go up or down at the angle depending on which side of field
 			var addToBaseDist = false;
-			var foulPlayable = battingResults.fouledBallPlayable;
 
 			if((hitSection === appConstants.LEFT) || (hitSection === appConstants.RIGHT)){
 				baseAngleDistDelta = angles.LF_RF_BASE_ANGLE_DIST_DELTA;
@@ -101,17 +122,15 @@ module.exports = function(module){
 		
 			}
 
-			if(addToBaseDist){
-				wallDistance = (Math.floor((hitAngle - baseAngle) / baseAngleDistDelta) + baseDistance);
-			}
-			else{
-				wallDistance = (baseDistance - Math.floor((hitAngle - baseAngle) / baseAngleDistDelta));
-			}
-			 
-
-			 return wallDistance;
+			if(addToBaseDist) wallDistance = (Math.floor((hitAngle - baseAngle) / baseAngleDistDelta) + baseDistance);
+			else wallDistance = (baseDistance - Math.floor((hitAngle - baseAngle) / baseAngleDistDelta));
+			
+			return wallDistance;
 		}
 
+		/**
+		 * Sets the distance and angle of the foul wall that the ball put into play is bound by based on the hit angle.
+		 */
 		function determineLRFoulWallSectionHitTo(hitAngle, angles){
 			var ballHitToBottomSection = (hitAngle <= fieldingConstants.RIGHT_FOUL_TOP_SECTION_START_ANGLE) || (hitAngle > fieldingConstants.LEFT_FOUL_TOP_SECTION_START_ANGLE);
 			angles.LF_RF_BASE_ANGLE_DIST_DELTA = ballHitToBottomSection ? fieldingConstants.FOUL_BOTTOM_SECTION_ANGLE_DELTA : fieldingConstants.FOUL_TOP_SECTION_ANGLE_DELTA;
@@ -121,11 +140,14 @@ module.exports = function(module){
 			angles.RIGHT_BASE_ANGLE = ballHitToBottomSection ? angles.RIGHT_MIN : fieldingConstants.RIGHT_FOUL_TOP_SECTION_START_ANGLE;
 		}
 
-		function getCutoffMan(nextBase){
+		/**
+		 * Determines the cut off man and man covering his base based on where the ball was hit.
+		 */
+		function getCutoffInfo(nextBase){
 			var cutOffMan = '';
 			var manCoveringCutoffsBase = '';
 
-			//PITCHER COVERING HOME PLATE FOR C ON PLAYABLE FOUL? OR ANY OTHER BASES (1ST FOR 1B IF 1B FIELDS)?
+			//TODO: PITCHER COVERING HOME PLATE FOR C ON PLAYABLE FOUL? OR ANY OTHER BASES (1ST FOR 1B IF 1B FIELDS)?
 
 			if((fieldingResults.hitSection).indexOf(appConstants.RIGHT) > -1){
 				if(nextBase == 4){
@@ -154,15 +176,19 @@ module.exports = function(module){
 			};	
 		}
 
+		/**
+		 * Returns the time it takes the fielded ball to reach the each potential destination base, as well as defender and distance information.
+		 */
 		function determineTimeToGetBallToBase(currentTime, defenderMakingThrow, throwFromXY, bases){
 			var returnObj = [];
 
 			//TO DO: SOMETIMES FIELDER GOES AND STEPS ON BASE HIMSELF
 
-			//TO DO: FIX FACT THAT STRONGER ARMS GET LARGER DELTA SUBTRACTED
-			var delta = __.getRandomDecimalInclusive(0, (defenderMakingThrow.throwPower * (fieldingConstants.FIELDER_THROW_MULTIPLIER)), 2);
+			var aidedByThrowPower = (__.getRandomIntInclusive(0, 100) <= defenderMakingThrow.throwPower);
+			var multiplier = (aidedByThrowPower ? defenderMakingThrow.throwPower : __.get100minusAttribute(defenderMakingThrow.throwPower));
+			var delta = __.getRandomDecimalInclusive(0, (multiplier * (fieldingConstants.FIELDER_THROW_MULTIPLIER)), 2);
 			var baseThrowVelocity = __.determineBaseThrowVelocity(defenderMakingThrow, defenderMakingThrow.infield);
-			delta *= ((__.getRandomIntInclusive(0, 100) <= defenderMakingThrow.throwPower) ? 1 : -1);
+			delta *= (aidedByThrowPower ? 1 : -1);
 			var throwVelocity = (baseThrowVelocity + delta);
 
 			_.each(bases, function(base){
@@ -170,17 +196,18 @@ module.exports = function(module){
 					var returnInfo = {};
 					var timeAbleToGetBallToCutoff = 0;
 					var cutoffWindupTime = 0;
+					var fielderWindupTime = defenderMakingThrow.windupTime;
+					var cutOffInfo = getCutoffInfo(base.baseNumber);
+					var cutOffMan = cutOffInfo.defenderMakingThrow;
+					var manCoveringCutoffsBase = cutOffInfo.manCoveringCutoffsBase;
 					var baseXY = {
 						x : base.x, 
 						y : base.y
 					};
+					
 					var distanceToBase = __.getDistance(throwFromXY, baseXY);
-					var fielderWindupTime = defenderMakingThrow.windupTime;
-					var cutOffInfo = getCutoffMan(base.baseNumber);
-					var cutOffMan = cutOffInfo.defenderMakingThrow;
-					var manCoveringCutoffsBase = cutOffInfo.manCoveringCutoffsBase;
 
-					//throw to cutoff man if outfielder too far away
+					//throw to cutoff man if outfielder too far away from base
 					if(distanceToBase > (fieldingConstants.THROW_TO_CUTOFF_MIN - __.get100minusAttribute(defenderMakingThrow.throwPower))){
 						returnInfo.throwToCutOffMan = true;
 						defenderMakingThrow = cutOffMan;
@@ -192,22 +219,25 @@ module.exports = function(module){
 						};
 
 						//set player's cutoff xy:
-						//get angle between base being thrown to and throwFromXY
-						//get point on that line at a distance
-						//get angle between cutoff defender and that point
-						//move a distance toward that point at that angle
+						//get angle between base being thrown to and throwFromXY;
+						//get point on that line at CUTOFF_POINT_DISTANCE;
+						//get angle between cutoff defender and that point;
+						//move FINAL_DISTANCE_TOWARD_CUTOFF_POINT toward that point at that angle
 
 						var angleBetweenThrowFromPointAndBase = __.getAngleBetweenTwoPoints(throwFromXY, baseXY);
-						var goTowardCutoffPoint = __.getX2Y2(base.x, base.y, fieldingConstants.GO_TOWARD_CUTOFF_POINT, angleBetweenThrowFromPointAndBase);
-						var angleBetweenDefenderAndCutoffPoint = __.getAngleBetweenTwoPoints(defenderMakingThrowXY, goTowardCutoffPoint);
+						var cutoffPoint = __.getX2Y2(base.x, base.y, fieldingConstants.CUTOFF_POINT_DISTANCE, angleBetweenThrowFromPointAndBase);
+						var angleBetweenDefenderAndCutoffPoint = __.getAngleBetweenTwoPoints(defenderMakingThrowXY, cutoffPoint);
 						var distanceToMoveTowardCutoffPoint = ((base.baseNumber == 4) ? -fieldingConstants.FINAL_DISTANCE_TOWARD_CUTOFF_POINT : fieldingConstants.FINAL_DISTANCE_TOWARD_CUTOFF_POINT);
 						var finalCutoffPoint = __.getX2Y2(defenderMakingThrow.x, defenderMakingThrow.y, distanceToMoveTowardCutoffPoint, angleBetweenDefenderAndCutoffPoint);
 
 						defenderMakingThrowXY.x = finalCutoffPoint.x;
 						defenderMakingThrowXY.y = finalCutoffPoint.y;
-						delta = __.getRandomDecimalInclusive(0, (defenderMakingThrow.throwPower * fieldingConstants.FIELDER_THROW_MULTIPLIER), 2);
+
+						aidedByThrowPower = (__.getRandomIntInclusive(0, 100) <= defenderMakingThrow.throwPower);
+			 			multiplier = (aidedByThrowPower ? defenderMakingThrow.throwPower : __.get100minusAttribute(defenderMakingThrow.throwPower));
+						delta = __.getRandomDecimalInclusive(0, (multiplier * fieldingConstants.FIELDER_THROW_MULTIPLIER), 2);
 						baseThrowVelocity = __.determineBaseThrowVelocity(defenderMakingThrow, defenderMakingThrow.infield);
-						delta *= ((__.getRandomIntInclusive(0, 100) <= defenderMakingThrow.throwPower) ? 1 : -1);
+						delta *= (aidedByThrowPower ? 1 : -1);
 						throwVelocity = (baseThrowVelocity + delta);
 						timeAbleToGetBallToCutoff = (fielderWindupTime + __.getDistance(throwFromXY, defenderMakingThrowXY) / __.mphToFps(throwVelocity));
 						distanceToBase = __.getDistance(defenderMakingThrowXY, baseXY);
@@ -229,6 +259,9 @@ module.exports = function(module){
 			return returnObj;
 		}
 
+		/**
+		 * Evaluates where defense goes with the fielded ball (if at all) based on base runner action and timing.
+		 */
 		function throwBallIn(params){
 			var currentTime = params.currentTime;
 			var potentialPlaysToBeMade = [];
@@ -247,17 +280,17 @@ module.exports = function(module){
 						return ((player.position === baseRunner.position) && !player.inactive);
 					}) : null;
 
-				//if batter, evaluate home plate as current base just to have something in the array
-				//won't be used, as currentBase is evaluated for runner going back to tag up
-				var currentBase = appConstants.GAME_PLAY.BASES[(baseRunner.currentBase == 0) ? 4 : baseRunner.currentBase];
+				//if batter, evaluate home plate as current base just to have something in the array;
+				//won't be used as currentBase is evaluated for runners who go back to tag up
+				var currentBase = appConstants.GAME_PLAY.BASES[batter ? 4 : baseRunner.currentBase];
 
 				var nextBase = appConstants.GAME_PLAY.BASES[baseRunner.nextBase];
 				var baseAfterNext = appConstants.GAME_PLAY.BASES[baseRunner.baseAfterNext];
 				var threeBasesAhead = appConstants.GAME_PLAY.BASES[baseRunner.threeBasesAhead];
 
-				//e.g. if runner in front of current runner is going from 1st to 2nd, but batter would have tried to go to 2nd as well, make batter settle at 1st 
-				//(except if runner in front went home and trailing runner wants to go home too)
-				//or runner in front is staying/tagged up at his current base
+				//e.g. if runner in front of current runner (batter) is going from 1st to 2nd, but batter would have tried to go to 2nd as well, make batter settle at 1st
+				//(except if runner in front went home and trailing runner wants to go home too);
+				//also settle if runner in front is staying/tagged up at his current base
 				if(((baseRunnerInFrontIsAdvTo.base == baseRunner.nextBase) && (baseRunnerInFrontIsAdvTo.base < 4)) 
 					|| ((baseRunnerInFrontIsAdvTo.base === appConstants.NO_PLAY) && (baseRunnerInFrontIsAdvTo.stayedAtBase == baseRunner.nextBase))){
 					baseRunner.nextBase -= 1;
@@ -269,7 +302,7 @@ module.exports = function(module){
 					nextBase = appConstants.GAME_PLAY.BASES[baseRunner.nextBase];
 				}
 
-				//now check that runner does not try to go to base that runner in front of him is going to (i.e. further his than next base)
+				//now check that runner does not try to go to a base that runner in front of him is going to (i.e. further than his next base)
 
 				if((baseRunnerInFrontIsAdvTo.base < 4) && (baseRunnerInFrontIsAdvTo.base === baseRunner.baseAfterNext)){
 					baseRunner.baseAfterNext -= 1;
@@ -278,22 +311,16 @@ module.exports = function(module){
 
 				if((baseRunnerInFrontIsAdvTo.base < 4) && (baseRunnerInFrontIsAdvTo.base === baseRunner.threeBasesAhead)){
 					baseRunner.threeBasesAhead -= 1;
-
-					//the runner directly in front of runner whose three bases ahead base is " + baseRunnerInFrontIsAdvTo.base + " is going to/staying at that base, so go no further than base " + baseRunner.threeBasesAhead);
 				}
 
 				if(airbornBall) baseRunningService.handleRunnerOnAirbornBall(baseRunner, fieldingResults, params.outsBeforePlay);
 
+				//determine time it would take to get the ball to each of the possible bases this runner may advance to
 				var timeToBaseInfo = determineTimeToGetBallToBase(currentTime, params.fielder, params.throwFromXY,
 										[currentBase, nextBase, (baseRunner.baseAfterNext ? baseAfterNext : null), (baseRunner.threeBasesAhead ? threeBasesAhead : null)]);
 
-				var baseAdvancingToObj =
-					baseRunningService.getBaseRunnerIsAdvancingTo(baseRunner, timeToBaseInfo,
-					{
-						airbornBall : airbornBall,
-						ballCaught : ballCaught
-					});
-				
+				var baseAdvancingToObj = baseRunningService.getBaseRunnerIsAdvancingTo(baseRunner, timeToBaseInfo, {airbornBall : airbornBall, ballCaught : ballCaught});
+				var advancedToBase = baseAdvancingToObj.baseRunnerIsAdvancingTo;
 				baseRunnerInFrontIsAdvTo.base = baseAdvancingToObj.baseRunnerIsAdvancingTo;
 
 				if(baseRunnerInFrontIsAdvTo.base === appConstants.NO_PLAY){
@@ -301,37 +328,33 @@ module.exports = function(module){
 					basesBeingAdvancedTo.push(baseRunner.currentBase);
 				}
 
-				if(baseAdvancingToObj.baseRunnerIsAdvancingTo !== appConstants.NO_PLAY){
+				//potential for out at base this runner is advancing to
+				if(advancedToBase !== appConstants.NO_PLAY){
 					basesBeingAdvancedTo.push(baseAdvancingToObj.baseRunnerIsAdvancingTo);
-					var runnerAdvancingToNextBase = (baseAdvancingToObj.baseRunnerIsAdvancingTo === baseRunner.nextBase);
+					var runnerAdvancingToNextBase = (advancedToBase === baseRunner.nextBase);
 					var timeToBaseObj = (baseAdvancingToObj.runnerGoingBackToBase ? timeToBaseInfo[0] : (runnerAdvancingToNextBase ? timeToBaseInfo[1] : timeToBaseInfo[2]));
-
-					//runner projected to be close to/past next base
-					//play may be made if runner is projected to be at most DIST_DIFF_FOR_PROJECTED_BASE_REACH feet past base by time ball gets there
 
 					var delta = (baseRunner.projectedRunningRate * baseAdvancingToObj.timeToBase);					
 					//account for potential double off (subtract from runner's distance instead of adding)
 					delta *= (baseAdvancingToObj.runnerGoingBackToBase ? -1 : 1);
 
 					var projectedDistanceAtTimeBallReachesBase = (baseRunner.currentDistance + delta);
-					var runnerDistanceFromBase = (projectedDistanceAtTimeBallReachesBase - appConstants.GAME_PLAY.BASES[baseAdvancingToObj.baseRunnerIsAdvancingTo].distance);
+					var runnerDistanceFromBase = (projectedDistanceAtTimeBallReachesBase - appConstants.GAME_PLAY.BASES[advancedToBase].distance);
 
+					//runner projected to be close to/past next base
+					//play may be made if runner is projected to be at most DIST_DIFF_FOR_PROJECTED_BASE_REACH feet past base by time ball gets there
 					var playToBeMade = (baseAdvancingToObj.runnerGoingBackToBase ? 
 						(runnerDistanceFromBase > fieldingConstants.DIST_DIFF_FOR_PROJECTED_BASE_REACH) : (runnerDistanceFromBase < fieldingConstants.DIST_DIFF_FOR_PROJECTED_BASE_REACH));
 
-					if(batter){
-						fieldingResults.baseBatterAdvancedTo = appConstants.GAME_PLAY.BASES[baseAdvancingToObj.baseRunnerIsAdvancingTo].baseId;
-					}	
-
+					if(batter) fieldingResults.baseBatterAdvancedTo = appConstants.GAME_PLAY.BASES[advancedToBase].baseId;
+					
 					if(playToBeMade){
-						var outPriority = appConstants.GAME_PLAY.BASES[baseAdvancingToObj.baseRunnerIsAdvancingTo].outPriority;
+						var outPriority = appConstants.GAME_PLAY.BASES[advancedToBase].outPriority;
 
-						if(batter){
-							fieldingResults.playToBeMadeOnBatter = true;
-						}
+						if(batter) fieldingResults.playToBeMadeOnBatter = true;
 
 						potentialPlaysToBeMade.push({
-							base : baseAdvancingToObj.baseRunnerIsAdvancingTo,
+							base : advancedToBase,
 							timeToBase : baseAdvancingToObj.timeToBase,
 							outGuarantee: (baseAdvancingToObj.timeToBase + timeToBaseObj.fielderDistanceFromBase + runnerDistanceFromBase),
 							outPriority: (outPriority + runnerDistanceFromBase),
@@ -350,56 +373,54 @@ module.exports = function(module){
 						});
 					}
 				}
-				else{
-					if(batter){
-						fieldingResults.baseBatterAdvancedTo = appConstants.GAME_PLAY.BASES[baseRunner.currentBase].baseId;
-					}
+				//no play to be made at base batter is advancing to
+				else if(batter){
+					fieldingResults.baseBatterAdvancedTo = appConstants.GAME_PLAY.BASES[baseRunner.currentBase].baseId;
 				}
 			});
 
 			if(potentialPlaysToBeMade.length){
 				var lessThanTwoOuts = (gamePlayService.outs() < 2);
+				var throwToBase;
+				var finalThrowToBase;
+				var doublePlayBase;
+				var firstPlayOption;
+				var doublePlayPossible = false;
 				fieldingResults.playToBeMadeOnRunner = true;
 
 				//favor bases to defense's left if infield defender
 				if(params.fielder.infield && lessThanTwoOuts){
-					_.each(potentialPlaysToBeMade, function(playToBeMade){
-						var baseNumber = (appConstants.GAME_PLAY.BASES[playToBeMade.base].baseNumber === 4 ? 2 : appConstants.GAME_PLAY.BASES[playToBeMade.base].baseNumber);
+					_.each(potentialPlaysToBeMade, function(playToBeMade){					
+						var baseNumber = ((appConstants.GAME_PLAY.BASES[playToBeMade.base].baseNumber === 4) ? 2 : appConstants.GAME_PLAY.BASES[playToBeMade.base].baseNumber);//home plate has same x position as 2nd base
 						var throwFromX = (fieldingResults.finalDistanceBounceRollXY ? fieldingResults.finalDistanceBounceRollXY.x : fieldingResults.finalDistanceXY.x);
 						//multiply x by base number so that the lower the x, the higher the priority (e.g. SS should prioritize 2B over 1B to his left)
 						var baseXDelta = (appConstants.GAME_PLAY.BASES[playToBeMade.base].x * baseNumber);
 
 						playToBeMade.fielderBaseXDifference = (throwFromX - baseXDelta);
-						//playToBeMade.outGuarantee += playToBeMade.fielderBaseXDifference;
 						playToBeMade.outPriority += playToBeMade.fielderBaseXDifference;
 					});
 				}
 
-				//now that all plays to be made have been collected, mark the force outs to give them highest priority
+				//now that all plays to be made have been collected, mark the force outs to give those highest priority
 				markForceOuts(potentialPlaysToBeMade, basesBeingAdvancedTo);
 
-				var sortProperty = ((lessThanTwoOuts < 2) ? 'outPriority' : 'outGuarantee');
 				var potentialPlaysFirstOptionList = potentialPlaysToBeMade.slice();
+				var sortProperty = ((lessThanTwoOuts < 2) ? 'outPriority' : 'outGuarantee');
 				potentialPlaysFirstOptionList = _.sortBy(potentialPlaysFirstOptionList, ['forceOut', sortProperty]);
+				//list of potential second throws
 				potentialPlaysToBeMade = _.sortBy(potentialPlaysToBeMade, ['forceOut', 'outPriority']);
 
 				fieldingResults.potentialPlaysFirstOptionList = potentialPlaysFirstOptionList;
 				fieldingResults.playsToBeMade = potentialPlaysToBeMade;
-
-				var firstPlayOption = potentialPlaysFirstOptionList[0];
-				var throwToBase;
-				var finalThrowToBase;
-				var doublePlayBase;
-				var doublePlayPossible = false;
-	
+				firstPlayOption = potentialPlaysFirstOptionList[0];
+				
+				//determine where to go with the ball
 				_.each(potentialPlaysFirstOptionList, function(potentialFirstOptionPlay){
 					if(doublePlayPossible) return false;
 
 					throwToBase = potentialFirstOptionPlay;
 
-					if(!throwToBase.forceOut){
-						return;
-					}
+					if(!throwToBase.forceOut) return;
 
 					var manOnThrownToBase = getDefender((throwToBase.base == 4) ? appConstants.GAME_PLAY.POSITIONS.CATCHER : (throwToBase.base + 'B'));
 					var thrownToBase = appConstants.GAME_PLAY.BASES[throwToBase.base];
@@ -412,12 +433,13 @@ module.exports = function(module){
 
 					currentTime = throwToBase.timeToBase;
 
+					//check for second throw for double play
 					_.each(potentialPlaysToBeMade, function(potentialPlay){
 						if(potentialPlay.base == throwToBase.base) return;
 
 						var otherBase = appConstants.GAME_PLAY.BASES[potentialPlay.base];
 						var timeToBaseInfo = determineTimeToGetBallToBase(currentTime, manOnThrownToBase, {x : thrownToBase.x, y : thrownToBase.y}, [otherBase]);
-						var delta = potentialPlay.runnersProjectedRunningRate * potentialPlay.timeToBase;
+						var delta = (potentialPlay.runnersProjectedRunningRate * potentialPlay.timeToBase);
 
 						manOnThrownToBase.xOnPlay = thrownToBase.x;
 						manOnThrownToBase.yOnPlay = thrownToBase.y;		
@@ -449,6 +471,7 @@ module.exports = function(module){
 				fieldingResults.cutOffMan = finalThrowToBase.cutOffMan;
 				fieldingResults.firstThrowToBase = appConstants.GAME_PLAY.BASES[finalThrowToBase.base].baseId;
 				
+				//throw out attempt
 				var thirdOutRecorded = baseRunningService.handlePlayAction({
 					attemptedBase : finalThrowToBase,
 					updateOutsOnly : params.updateOutsOnly,
@@ -458,8 +481,6 @@ module.exports = function(module){
 					forceOut : finalThrowToBase.forceOut
 				});
 
-				//TO DO: CHECK RULES REGARDING A RUN COUNTING ON FORCE OUTS, AND SCORES BEFORE 3RD OUT MADE AT A BASE
-
 				if(!thirdOutRecorded && doublePlayPossible){
 					fieldingResults.secondThrowToBase = appConstants.GAME_PLAY.BASES[doublePlayBase.base].baseId;
 
@@ -467,11 +488,13 @@ module.exports = function(module){
 						attemptedBase : doublePlayBase,
 						updateOutsOnly : true,
 						attempt : 2,
+						//used to know if runner beats this 2nd throw and it is at home plate -- it counts if the 1st throw was not a force out
 						forceOut : finalThrowToBase.forceOut
 					});
 				}
 
 			}
+
 			//'casual' throw in as no plays to be made
 			//just update base runners
 			else{
@@ -480,10 +503,12 @@ module.exports = function(module){
 			}
 		}
 
+		/**
+		 * Sets the results of a caught ball or attempts the throw in for fielded ground balls.
+		 */
 		function handleFieldedBall(playerAttemptingToField){
 			var caughtFor3rdOut = false;
 			var timeToEvent = fieldingResults.timeToEvent;
-			var baseRunners;
 
 			if(battingResults.battedBallType !== battingConstants.BATTED_BALL_TYPES.GROUND_BALL){
 				var outsBeforePlay = gamePlayService.outs();
@@ -494,10 +519,6 @@ module.exports = function(module){
 				}
 
 				fieldingResults.currentTime = timeToEvent;
-
-				//caught ball
-				//remove batter from baserunners, then throw ball in with most up to date base runners returned from baseRunners()
-
 				fieldingResults.ballCaught = true;
 				gamePlayService.handleGroundOutsFlyOuts(appConstants.FLY_OUT_INDICATOR);
 
@@ -506,8 +527,7 @@ module.exports = function(module){
 					runnersPosition : batter.position
 				});
 				
-				//reset current time to 0 as the fielder throwing the ball in and any runners tagging up and going is a new timeline
-				//TO DO: THROW FROM (EVENT XY) WILL BE A LITTLE CLOSER DUE TO WIND UP AND THROW
+				//reset current time to 0 as the fielder throwing the ball in and any runners tagging up are on a new timeline
 				if(!caughtFor3rdOut){
 					throwBallIn({
 						baseRunners : baseRunningService.getBaseRunners(), 
@@ -531,56 +551,49 @@ module.exports = function(module){
 			}	
 		}
 
-		//WON'T BE SPRINTING FOR EVERY MISSED BALL (NO PLAY TO MAKE/BASE HIT, ETC.)
-		//ACCOUNT FOR BOUNCES OFF WALL TOO
-		//WHAT IF IT LANDED PAST THEM TO BEGIN WITH
-		//INITIAL PLAYER WHO ATTEMPTED WILL BE DIFFERENT B/C IF WENT AFTER BALL (NON-0/100 CHANCE), NOT WHERE IT WAS GOING (MAY EVEN BE THE ONE WHO CLEANS UP)
-		//IN ABOVE CASE, DISTANCE TRAVELED IN TIME TO EVENT WILL EITHER BE NOT ENOUGH OR ERRORED WHEN GOT TO BALL AND THUS RIGHT AT BALL (DON'T GO IN LOOP)
+		/**
+		 * Moves the fielder to the ball put into play while considering his speed and the ball's trajectory.
+		 */
 		function retrieveBall(isInitialAttempt){
-			//determine angle to take to ball
-			//if ball would go past defender, but defender can get to it at a cutoff angle, OR
-			//if ball not going past defender-->(1)go straight to ball to get to it as quick as possible (cut it off)
-			//but if can't get to it where it will pass him-->(2) go toward where it will end up
+			//if ball would go past defender, but he can get to it at a cutoff angle
+			//OR if ball not going past defender: go straight to ball to get to it as quick as possible (cut it off);
+			//but if can't get to it where it will pass him, go toward where it will end up
 
-			var fielder = isInitialAttempt ? fieldingResults.playerFieldingBall : fieldingResults.playerFieldingMissedBall;
+			var fielder = (isInitialAttempt ? fieldingResults.playerFieldingBall : fieldingResults.playerFieldingMissedBall);
+			var outsBeforePlay = gamePlayService.outs();
+			var currentTime = fieldingResults.timeToEvent;
+			var currentDistance = 0;
+			var X1Y1 = (isInitialAttempt ? fieldingResults.X1Y1 : fieldingResults.eventXY);
+			var X2Y2 = (isInitialAttempt ? fieldingResults.finalDistanceXY : fieldingResults.finalDistanceBounceRollXY);
 			var fielderXY = {
 				x : fielder.xOnPlay,
 				y : fielder.yOnPlay
 			};
 
-			var outsBeforePlay = gamePlayService.outs();
-			var currentTime = fieldingResults.timeToEvent;
-			var currentDistance = 0;
-			var X1Y1 = isInitialAttempt ? fieldingResults.X1Y1 : fieldingResults.eventXY;
-			var X2Y2 = isInitialAttempt ? fieldingResults.finalDistanceXY : fieldingResults.finalDistanceBounceRollXY;
-
 			//TO DO: TIE TOGETHER DISTANCE FROM FINAL SPOT AND DECELERATION (MAKE SO THAT THE DISTANCE DELTA HITS 0 AT ACTUAL FINAL SPOT)
 			var distanceFromEventToFinalSpot = __.getDistance(X1Y1, X2Y2);
 			var previousPointXY = X1Y1;
 			var pointTimeDelta = fieldingConstants.POINT_TIME_DELTA;
-			var X1Y1distance = isInitialAttempt ? battingResults.hitDistance : fieldingResults.eventDistance;
+			var X1Y1distance = (isInitialAttempt ? battingResults.hitDistance : fieldingResults.eventDistance);
 			var rateBallGotToEventLoc = (currentTime / X1Y1distance);
 			var distanceDelta = ((pointTimeDelta / rateBallGotToEventLoc) / fieldingConstants.BALL_RETRIEVAL_DISTANCE_DELTA_DIVIDER);
 			var distanceDeceleration = __.getRandomDecimalInclusive(fieldingConstants.DISTANCE_DECELERATION_MIN, fieldingConstants.DISTANCE_DECELERATION_MAX, 5);
 			var ballRetrievedAlongPath = false;
 			var subtractFromDistance = false;
 			var distanceBallRollsIntoWall = 999;
+			var delta = __.getRandomDecimalInclusive(0, (fielder.runSpeed * fieldingConstants.BALL_RETRIEVAL_RUN_SPEED_MULTIPLIER), 2);
+			var runRate = (appConstants.GAME_PLAY.AVG_FPS_MOVED_FOR_HARDEST_PLAYS_MADE + ((__.getRandomIntInclusive(0, 100) <= fielder.runSpeed) ? delta : (delta * -1)));
 
 			if(fieldingResults.ballHittingWallFromAir){
 				subtractFromDistance = true;
 			}
-			//rolling/bouncing into wall
 			else if(fieldingResults.ballRollHitWallDistance){
 				distanceBallRollsIntoWall = __.getDistance(X1Y1, fieldingResults.ballRollsIntoWallXY);
 				//distance between event and wall plus distance it goes after hitting wall
 				distanceFromEventToFinalSpot = (fieldingResults.distanceBouncedOffWall + distanceBallRollsIntoWall);
-			}
+			}	
 
-			//TO DO:move to method as it's used in other places
-			var delta = __.getRandomDecimalInclusive(0, (fielder.runSpeed * fieldingConstants.BALL_RETRIEVAL_RUN_SPEED_MULTIPLIER), 2);
-			var runRate = (appConstants.GAME_PLAY.AVG_FPS_MOVED_FOR_HARDEST_PLAYS_MADE + ((__.getRandomIntInclusive(0, 100) <= fielder.runSpeed) ? delta : (delta * -1)));
-			//
-
+			//simultaneous ball and player movement until ball stops
 			while((distanceFromEventToFinalSpot - currentDistance) > 0){
 				var currentPointDistance = (subtractFromDistance ? (distanceDelta * -1) : distanceDelta);
 				var currentPointXY = __.getX2Y2(previousPointXY.x, previousPointXY.y, currentPointDistance, fieldingResults.hitAngle);
@@ -588,7 +601,7 @@ module.exports = function(module){
 				currentTime += pointTimeDelta;
 				currentDistance += distanceDelta;
 
-				//TO DO: CORRECT THE LOGIC WITH DISTANCE/FINAL ROLL POINT
+				//ball hits wall so it is now moving in the other direction
 				if(!subtractFromDistance && (currentDistance >= distanceBallRollsIntoWall)){
 					var distanceFromPreviousPointToWall = __.getDistance(previousPointXY, fieldingResults.ballRollsIntoWallXY);
 					currentPointXY = __.getX2Y2(fieldingResults.ballRollsIntoWallXY.x, fieldingResults.ballRollsIntoWallXY.y, ((distanceDelta - distanceFromPreviousPointToWall) * -1), fieldingResults.hitAngle);
@@ -604,7 +617,7 @@ module.exports = function(module){
 				var distancePlayerTravelsInCurrTime = (runRate * currentTime);
 				var distanceBetweenPlayersInitialXYAndCurrPoint = __.getDistance(fielderXY, currentPointXY);
 
-				//if defender within a few feet, grab it
+				//if defender within a few feet of the ball, grab it
 				if((distanceBetweenPlayersInitialXYAndCurrPoint - distancePlayerTravelsInCurrTime) <= fieldingConstants.MAX_FEET_TO_GRAB_BALL){
 					ballRetrievedAlongPath = true;
 					break;
@@ -624,7 +637,6 @@ module.exports = function(module){
 
 			fieldingResults.currentTime = currentTime;
 
-			//determine where to go with the ball
 			var baseRunners = baseRunningService.startBaseRunners(currentTime);
 
 			throwBallIn({
@@ -637,6 +649,9 @@ module.exports = function(module){
 
 		}
 
+		/**
+		 * Determines which defender fields a ball that passed an initial defender or was not catchable before it landed.
+		 */
 		function detemineMissedBallFielder(angles){
 			var bounceRollStartXY = fieldingResults.X1Y1;
 			var battedBallType = battingResults.battedBallType;
@@ -653,20 +668,21 @@ module.exports = function(module){
 				}
 			}
 
+			//ball bounces off wall and is sent in the other direction
 			if(fieldingResults.ballHittingWallFromAir){
 				finalDistance -= __.getRandomIntInclusive(fieldingConstants.BOUNCE_ROLL_FINAL_DIST.BALL_OFF_WALL_FROM_AIR.min, fieldingConstants.BOUNCE_ROLL_FINAL_DIST.BALL_OFF_WALL_FROM_AIR.max);
 			}
 			else{
-				//determine result of ball in relation to wall
+				//ball hit far enough to hit wall
 				if(finalDistance >= fieldingConstants.LF_RF_FOUL_LINE_DIST){
-					//TO DO--HARDER/QUICKER IT GOT TO WALL, MORE IT BOUNCES
+					//TO DO: HARDER/QUICKER IT GOT TO WALL, MORE IT BOUNCES
 					//ALSO BALL DOESN'T BOUNCE OFF WALL AT SAME ANGLE IT HIT IT AT
 
+					//distance that ball hit wall
 					var wallDistance = determineWallDistance(fieldingResults.rawHitAngle, angles);
-					fieldingResults.ballRollHitWallDistance = wallDistance;
 
-					//if rolled into wall
 					var distanceBouncedOffWall = __.getRandomIntInclusive(fieldingConstants.BOUNCE_ROLL_FINAL_DIST.BALL_OFF_WALL_FROM_GROUND.min, fieldingConstants.BOUNCE_ROLL_FINAL_DIST.BALL_OFF_WALL_FROM_GROUND.max);
+					fieldingResults.ballRollHitWallDistance = wallDistance;
 					fieldingResults.distanceBouncedOffWall = distanceBouncedOffWall;
 					finalDistance = (wallDistance - distanceBouncedOffWall);					
 					fieldingResults.ballRollsIntoWallXY = __.getX2Y2(fieldingConstants.HOME_PLATE_X, fieldingConstants.HOME_PLATE_Y, wallDistance, fieldingResults.hitAngle);
@@ -678,7 +694,7 @@ module.exports = function(module){
 			var finalDistanceBounceRollXY = __.getX2Y2(bounceRollStartXY.x, bounceRollStartXY.y, (finalDistance - originalDistance), fieldingResults.hitAngle);
 			fieldingResults.finalDistanceBounceRollXY = finalDistanceBounceRollXY;
 
-			//take P out of equation of missed ball as he probably won't go for a ball past him (one of the infielders instead)
+			//take P out of equation of missed ball as he won't go for a ball past him (one of the infielders instead)
 			playersFieldingBall.splice(_.findIndex(playersFieldingBall, {position: appConstants.GAME_PLAY.POSITIONS.PITCHER}), 1);
 
 			//recalculate who goes after ball as that may not necessarily be whoever's 2nd in line from who missed it
@@ -693,21 +709,22 @@ module.exports = function(module){
 				player.distanceToFinalBallDist = playerToFinalDist;
 			});
 
-			//could pass two players--will handle with movement towards ball, timeline of play etc
-
 			playersFieldingBall.sort(sortByDistToFinal);
 			fieldingResults.playerFieldingMissedBall = playersFieldingBall[0];
 
 			retrieveBall();
 		}
 
+		/**
+		 * Gathers information on the ball put into play and determines the result of fielding attempt.
+		 */
 		function fieldBall(_battingResults){
 			//clear results form last time ball was fielded
 			fieldingResults = {};
 
 			var defense =  gamePlayService.getDefense();
-			battingResults = _battingResults;
 			defenders = defense.players;
+			battingResults = _battingResults;
 			playersFieldingBall = [];
 			pitcher = gamePlayService.getPitcher();
 			batter = gamePlayService.getBatter();
@@ -715,7 +732,6 @@ module.exports = function(module){
 			if(battingResults.putIntoPlay){
 				var battedBallType = battingResults.battedBallType;
 				var groundBallInitialXY;
-				var distanceTierNum = battingResults.hitDistance;
 				var finalDistance = battingResults.hitDistance;
 				var finalDistanceXY;
 				var timeToEvent;//hang time, or time to reach ball before passes player if GB
@@ -725,14 +741,15 @@ module.exports = function(module){
 				var homePlate;
 				var ballWillGoPastDefender = false;
 				var sortFunction;
-				var distanceToEventKey = '';
+				var distanceToEventKey;
 				var foulPlayable = battingResults.fouledBallPlayable;
 				var angles = foulPlayable ? fieldingConstants.FOUL_TERRITORY_ANGLES : fieldingConstants.IN_PLAY_ANGLES;
 
 
 
 
-				//***************************************DETERMINE PLAYERS INVOLVED IN PLAY*****************************************************
+				//***************************************DETERMINE DEFENDERS INVOLVED IN PLAY*****************************************************
+
 
 
 
@@ -750,7 +767,7 @@ module.exports = function(module){
 					if(foulPlayable) playersFieldingBall = [getDefender(appConstants.GAME_PLAY.POSITIONS.CATCHER), getDefender(appConstants.GAME_PLAY.POSITIONS.FIRST_BASEMAN), getDefender(appConstants.GAME_PLAY.POSITIONS.THIRD_BASEMAN)];
 
 					hitAngle = __.getRandomDecimalInclusive(angles.CENTER_MIN, angles.CENTER_MAX, 2);
-					hitSection = (hitAngle > fieldingConstants.IN_PLAY_ANGLES.CENTER_BASE_ANGLE) ? appConstants.LEFT_CENTER : appConstants.RIGHT_CENTER;
+					hitSection = ((hitAngle > fieldingConstants.IN_PLAY_ANGLES.CENTER_BASE_ANGLE) ? appConstants.LEFT_CENTER : appConstants.RIGHT_CENTER);
 				}
 
 				//hit to right field
@@ -781,7 +798,7 @@ module.exports = function(module){
 					groundBallInitialXY = __.getX2Y2(fieldingConstants.HOME_PLATE_X, fieldingConstants.HOME_PLATE_Y, battingResults.hitDistance, __.convertToRadians(hitAngle));
 
 					_.each(fieldingConstants.GB_FINAL_DIST_TIERS, function(tier){
-						if(distanceTierNum <= tier.distPlusHtpMax){
+						if(battingResults.hitDistance <= tier.distPlusHtpMax){
 							//go toward ball if slow roller
 							if(tier.slowTier) fieldingResults.goTowardGB = true;
 
@@ -802,7 +819,7 @@ module.exports = function(module){
 						timeMap = fieldingConstants.LD_TIME_PERCENTAGES;
 					}	
 					else{
-						var timeTotal = (battedBallType === battingConstants.BATTED_BALL_TYPES.FLY_BALL) ? fieldingConstants.FLYB_TIME_TOTAL : fieldingConstants.PU_TIME_TOTAL;
+						var timeTotal = ((battedBallType === battingConstants.BATTED_BALL_TYPES.FLY_BALL) ? fieldingConstants.FLYB_TIME_TOTAL : fieldingConstants.PU_TIME_TOTAL);
 						timeNum = __.getRandomIntInclusive(1, timeTotal);
 						timeMap = fieldingConstants.FLYB_PU_TIME_EVENTS;
 					}
@@ -812,7 +829,7 @@ module.exports = function(module){
 						var hangTimeIndex = ((battedBallType === battingConstants.BATTED_BALL_TYPES.LINE_DRIVE) ? timing.index : eventIndex);
 
 						if(timeNum <= hangTimeIndex){
-							timeToEvent = timing.minTime ? __.getRandomDecimalInclusive(timing.minTime, timing.maxTime, 1) : timing.time;
+							timeToEvent = (timing.minTime ? __.getRandomDecimalInclusive(timing.minTime, timing.maxTime, 1) : timing.time);
 							
 							return false;
 						}
@@ -855,8 +872,7 @@ module.exports = function(module){
 								baseRunningService.setClearBases();
 								gamePlayService.updateCount({plateAppearanceEnded : appConstants.HOMERUN});
 
-								//CHECK IF JUST OVER WALL AND CAN ACTUALLY BE FIELDED
-								//MAKE CHANCE OF FIELDING LESS!
+								//TODO: CHECK IF JUST OVER WALL AND CAN ACTUALLY BE FIELDED -- MAKE CHANCE OF FIELDING LESS!
 
 								battingResults.homeRun = true;
 								battingResults.plateAppearanceEnded = true;
@@ -864,7 +880,7 @@ module.exports = function(module){
 								return fieldingResults;
 							}
 							//HITS WALL
-							//MAKE CHANCE OF FIELDING LESS! (BUT NOT AS MUCH AS BALL GOING OVER WALL); CAN RUN INTO WALL AS CATCHING 
+							//TODO: MAKE CHANCE OF FIELDING LESS! (BUT NOT AS MUCH AS BALL GOING OVER WALL); CAN RUN INTO WALL AS CATCHING 
 							else if((finalDistance >= hitWallDistance.min) && (finalDistance <= hitWallDistance.max)){
 								//still check if defender fields, just accounts for fact that if they miss, bounce/roll is different off wall
 								fieldingResults.ballHittingWallFromAir = true;
@@ -872,7 +888,7 @@ module.exports = function(module){
 							//ELSE HITS GROUND
 						}
 					}
-					//playable foul ball, we have the wall distance, now determine final distance since we know it is within the walls
+					//playable foul ball -- we have the wall distance, now determine final distance since we know it is within the walls
 					else{
 						var pitchType = battingResults.pitchTypeSeen;
 						var distConstants = battingResults.distConstants;
@@ -896,7 +912,6 @@ module.exports = function(module){
 
 
 
-				//make hit angle realistic (not random between 0-180)
 				fieldingResults.rawHitAngle = hitAngle;
 				hitAngle = __.convertToRadians(hitAngle);
 				fieldingResults.hitAngle = hitAngle;
@@ -918,21 +933,23 @@ module.exports = function(module){
 				var minY = fieldingConstants.DEFENSE_POSITIONING_Y_MOVE_MIN;
 				var maxY = fieldingConstants.DEFENSE_POSITIONING_Y_MOVE_MAX;
 
+				//shift the defense depending on batter's handedness
 				_.each(playersFieldingBall, function(player){
-					//shimmy players' x/y if not C or P
 					if((player.position !== appConstants.GAME_PLAY.POSITIONS.CATCHER) && (player.position !== appConstants.GAME_PLAY.POSITIONS.PITCHER)){
 						var randomXPosition = __.getRandomIntInclusive(minX, maxX);
 						var randomYPosition = __.getRandomIntInclusive(minY, maxY);
 						var randomXMultiplier = 1;
+						//default to moving back
 						var randomYMultiplier = -1;
 						
-						//right handed batter
+						//right handed batter -- shift to defense's right
 						if(batter.handedness === appConstants.RIGHT){
 							randomXMultiplier = -1;
 
+							//move player on right side of field forward
 							if(player.fieldSide === appConstants.RIGHT) randomYMultiplier = 1;
 						}
-						//fielder on left side vs left handed batter
+						//fielder on left side vs left handed batter -- shift to defense's left
 						else if(player.fieldSide === appConstants.LEFT) randomXMultiplier = 1;
 
 						player.xOnPlay = (player.x + (randomXPosition * randomXMultiplier));
@@ -971,11 +988,13 @@ module.exports = function(module){
 
 
 
+
 				//*********************************************SORT PLAYERS BASED ON WHERE BALL IS GOING AND WHO IT WILL BE CLOSEST TO**************************************
 
 
 
-				//ground ball not going past any defender or a non-GB
+
+				//ground ball not going past any defender or a non-GB;
 				//closest person to final distance fields it
 				if(!ballWillGoPastDefender || (battedBallType !== battingConstants.BATTED_BALL_TYPES.GROUND_BALL)){
 					fieldingResults.goingPastDefender = false;
@@ -992,11 +1011,10 @@ module.exports = function(module){
 				playersFieldingBall.sort(sortFunction);
 				var playerAttemptingToField = playersFieldingBall[0];
 
-				//handle pitcher as defender
-				//TO DO: PITCHER IS AT END OF HIS THROW MOTION, NOT GOING TO BE FIELDING MUCH ON THINGS GOING PAST HIM
-				if((playerAttemptingToField.position === appConstants.GAME_PLAY.POSITIONS.PITCHER) && (distanceToEventKey === 'playerDistToBallPassingPoint') && !fieldingResults.goTowardGB){
+				//handle pitcher as defender; chances of him being able to field the ball are lowered
+				if((playerAttemptingToField.position === appConstants.GAME_PLAY.POSITIONS.PITCHER) && fieldingResults.goingPastDefender && !fieldingResults.goTowardGB){
 					var fractionOfTimeToEvent = (timeToEvent / fieldingConstants.PITCHER_FIELDING_DIVIDER);
-					timeToEvent = (fractionOfTimeToEvent < fieldingConstants.MIN_TIME_TO_EVENT) ? fieldingConstants.MIN_TIME_TO_EVENT : fractionOfTimeToEvent;
+					timeToEvent = ((fractionOfTimeToEvent < fieldingConstants.MIN_TIME_TO_EVENT) ? fieldingConstants.MIN_TIME_TO_EVENT : fractionOfTimeToEvent);
 					timeToEvent = parseFloat(timeToEvent.toFixed(1));
 					fieldingResults.timeToEvent = timeToEvent;
 				}
@@ -1010,8 +1028,7 @@ module.exports = function(module){
 
 
 				var ratesForTime = fieldingConstants.CHANCES[timeToEvent];
-				//determine bounce/roll starting point if defender cannot make play
-				//which is wherever ball hits ground
+				//determine bounce/roll starting point if defender cannot make play which is wherever ball hits ground
 				var X1Y1 = ((battedBallType === battingConstants.BATTED_BALL_TYPES.GROUND_BALL) ? groundBallInitialXY : finalDistanceXY);
 				
 				fieldingResults.X1Y1 = X1Y1;
@@ -1024,8 +1041,6 @@ module.exports = function(module){
 					retrieveBall(true);
 				}
 				else if(ratesForTime){
-					//use AWR when throwing the ball in?
-
 					var defenderSPD = playerAttemptingToField.runSpeed;
 					var playerDistanceKey = __.roundDownToNearest5(playerAttemptingToField[distanceToEventKey]);
 					var chanceOfFielding = ratesForTime[playerDistanceKey.toString()];
@@ -1035,16 +1050,17 @@ module.exports = function(module){
 					var multiplier = (fieldingConstants.AIRBORN_BALL_MULTIPLIER * (addToChance ? __.getRandomIntInclusive(0, defenderSPD) : __.getRandomIntInclusive(0, __.get100minusAttribute(defenderSPD))));
 					var delta = multiplierBase * multiplier;
 					var finalChanceOfFielding;
-					var distToBallPassingKey = (distanceToEventKey === 'playerDistToBallPassingPoint');
 
-					//needed for missed ball logic
+					//needed for missed ball logic;
 					//get where ball is when missed by first defender, or where it landed
-					fieldingResults.eventXY = (distToBallPassingKey ? playerAttemptingToField.ballPassingPoint : finalDistanceXY);
-					fieldingResults.eventDistance = (distToBallPassingKey ? playerAttemptingToField.homePlateToPlayerDist : fieldingResults.finalDistance);
+					fieldingResults.eventXY = (fieldingResults.goingPastDefender ? playerAttemptingToField.ballPassingPoint : finalDistanceXY);
+					fieldingResults.eventDistance = (fieldingResults.goingPastDefender ? playerAttemptingToField.homePlateToPlayerDist : fieldingResults.finalDistance);
+
 
 
 
 					//******************************************DETERMINE RESULT OF PLAY****************************************
+
 
 
 					
@@ -1052,7 +1068,7 @@ module.exports = function(module){
 
 					//undefined means 0 or 100
 					if(!chanceOfFielding){
-						//0% chance
+						//0% chance;
 						//oneHundredMax should only be undefined for 0.5-1.1 (no 100% distances)
 						if(!ratesForTime.oneHundredMax || (playerDistanceKey > ratesForTime.oneHundredMax)){
 							fieldingResults.chance = 0;
@@ -1071,14 +1087,11 @@ module.exports = function(module){
 							return fieldingResults;
 						}
 						//100% chance
-						else if((playerDistanceKey <= ratesForTime.oneHundredMax)
-							&& !((battedBallType === battingConstants.BATTED_BALL_TYPES.GROUND_BALL) && (playerAttemptingToField.position === appConstants.GAME_PLAY.POSITIONS.PITCHER))){
+						else if((playerDistanceKey <= ratesForTime.oneHundredMax) && !((battedBallType === battingConstants.BATTED_BALL_TYPES.GROUND_BALL) && (playerAttemptingToField.position === appConstants.GAME_PLAY.POSITIONS.PITCHER))){
 							fieldingResults.chance = 100;
 							fieldingResults.finalChanceOfFielding = 100;
 							fieldingResults.playMadeOnHit = true;
-
-							//set true here for playable foul ball
-							battingResults.plateAppearanceEnded = true;
+							battingResults.plateAppearanceEnded = true;//set true here for playable foul ball
 
 							handleFieldedBall(playerAttemptingToField);
 
@@ -1096,9 +1109,8 @@ module.exports = function(module){
 					fieldingResults.finalChanceOfFielding = finalChanceOfFielding;
 
 					if(fieldingNum <= finalChanceOfFielding){
-						fieldingResults.playMadeOnHit = true;
-						//set true here playable foul ball
-						battingResults.plateAppearanceEnded = true;
+						fieldingResults.playMadeOnHit = true;				
+						battingResults.plateAppearanceEnded = true;//set true here playable foul ball
 
 						handleFieldedBall(playerAttemptingToField);	
 					}

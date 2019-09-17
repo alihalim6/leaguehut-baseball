@@ -1,3 +1,7 @@
+/**
+ * Handles the play-by-play calls and announcements shown during gameplay.
+ * Each play or announcement is an entry in an array for the inning for which it occurs.
+ */
 module.exports = function(module){
 	module.service('playByPlayService', playByPlayService);
 
@@ -14,6 +18,9 @@ module.exports = function(module){
 
 		return api;
 
+		/**
+		 * Based on the play result and given parameters, a play call or annonucement is made describing the events.
+		 */
 		function generatePlayByPlay(params){
 			if(!playByPlay[params.inning]) playByPlay[params.inning] = [];
 
@@ -23,6 +30,7 @@ module.exports = function(module){
 				if(params.fullInningEnded) playCall = prefix + ' of the ' + params.inning + ' inning. ';
 				else playCall = 'Bottom of the ' + params.inning + ' inning. ';
 
+				//insert at the beginning of the array so it shows on top
 				playByPlay[params.inning].unshift({
 					playCall: playCall,
 					announcement: true,
@@ -42,12 +50,6 @@ module.exports = function(module){
 			}
 
 			var ___ = (new Chance);
-			var breakingBall = (params.pitch.pitchType === pitchConstants.PITCH_TYPES.BREAKING_BALL);
-			var pitchType = (breakingBall ? pitchConstants.PITCH_TYPES_FOR_DISPLAY[params.pitch.pitchSubType] : pitchConstants.PITCH_TYPES_FOR_DISPLAY[params.pitch.pitchType]);
-			var pitchTypeForCall = (breakingBall ? pitchConstants.PITCH_TYPES_FOR_DISPLAY[params.pitch.pitchSubType] : pitchConstants.PITCH_TYPES_FOR_DISPLAY[params.pitch.pitchType]);
-			var capitalizedPitchType = pitchTypeForCall;
-			pitchTypeForCall = pitchTypeForCall.toLowerCase();
-
 			var playCall = '';
 			var playCallPartTwo = '';
 
@@ -57,12 +59,16 @@ module.exports = function(module){
 
 			var pitch = params.pitch;
 			var pitchLocationCall = __.translatePitchLocationForPlayByPlay(pitch.location);
-			var pitchVelocity = pitch.pitchVelocity + ' mph';
+			var pitchVelocity = (pitch.pitchVelocity + ' mph');
 			var pitcherChange = params.pitcherChange;
+			var breakingBall = (params.pitch.pitchType === pitchConstants.PITCH_TYPES.BREAKING_BALL);
+			var pitchTypeForCall = (breakingBall ? pitchConstants.PITCH_TYPES_FOR_DISPLAY[params.pitch.pitchSubType] : pitchConstants.PITCH_TYPES_FOR_DISPLAY[params.pitch.pitchType]);
+			var capitalizedPitchType = pitchTypeForCall;
+			pitchTypeForCall = pitchTypeForCall.toLowerCase();
 
 			var battingResults = params.battingResults;
 			var resultingBallCount = (params.balls + 1);
-			var resultingStrikeCount = (((params.strikes + 1 === 3) && battingResults.fouledAway) ? 2 : params.strikes + 1);
+			var resultingStrikeCount = ((((params.strikes + 1) === 3) && battingResults.fouledAway) ? 2 : (params.strikes + 1));
 			var resultingOutCount = (params.outs + 1);
 			var hitDistance = (battingResults.hitDistance + ' ft');
 			var battedBallType = battingResults.battedBallType;
@@ -72,9 +78,9 @@ module.exports = function(module){
 			var battedBallTypeForCall = battingConstants.BATTED_BALL_TYPES_FOR_DISPLAY[battedBallType];
 			var capitalizedBattedBallType = battedBallTypeForCall;
 			battedBallTypeForCall = (battedBallTypeForCall ? battedBallTypeForCall.toLowerCase() : '');
-			var fieldSectionForCall = battingConstants.FIELD_SECTIONS_FOR_DISPLAY[battingResults.fieldSectionHitTo];
 
 			var fieldingResults = params.fieldingResults;
+			var fieldSectionForCall = battingConstants.FIELD_SECTIONS_FOR_DISPLAY[battingResults.fieldSectionHitTo];
 			var hitSectionForCall = fieldingConstants.HIT_SECTIONS_FOR_DISPLAY[fieldingResults.hitSection];
 			var hitSectionForCallShorthand = fieldingConstants.HIT_SECTIONS_FOR_DISPLAY_SHORTHAND[fieldingResults.hitSection];
 			var defender = (fieldingResults.playerFieldingBall ? fieldingResults.playerFieldingBall : '');
@@ -95,41 +101,41 @@ module.exports = function(module){
 
 			//STEAL ATTEMPT(S)
 			if(baseRunningResults.stealAttempt){
+				//SINGLE STEAL
+				var result = baseRunningResults.stealResults[0];
+				stealCall = true;
+
+				playCall += ___.bool() ?
+					result.runnerLastName + ' takes off to ' + appConstants.NUMBERS_FOR_DISPLAY[result.attemptedBase] + ' base ' + 
+						(result.success ? ' and beats the throw' + ((result.attemptedBase === 2 && resultingBaseRunners.length === 1) ? ' from ' + catcher.lastName + ', putting ' + offense.name + ' in scoring position' : '') : ' but is thrown out') + '. ' :
+					'Steal attempt by ' + result.runnerLastName + (result.success ? (result.attemptedBase === 3 ? ' beats the throw from ' + catcher.lastName + ' and puts ' + offense.name + ' 90 ft away from a run' : ' succeeds') : ' fails as he is tagged out before touching the bag. Great throw from ' + catcher.lastName) + '. ';
+				
 				//MULTI STEAL
 				if(baseRunningResults.stealResults.length > 1){
+					var noPlayOnStealRunner = _.find(offense.players, function(player){
+						return player.noPlayOnSteal;
+					});
 
+					playCall += noPlayOnStealRunner.lastName + ' advances safely. ';
 				}
 
-				//SINGLE STEAL
-				else{
-					var result = baseRunningResults.stealResults[0];
-					stealCall = true;
+				//stolen base can result in inning end and pitcher change
+				if(pitcherChange) playCall += generatePitcherChangePlayCall(___, pitcherChange, defense);
+				
+				if(baseRunningResults.clearBases){
+					playByPlay[params.inning].unshift({
+						count: (params.balls + '-' + params.strikes),
+						bases: params.bases.code,
+						outs: params.outs,
+						pitcher: params.pitcher,
+						pitchType: pitchTypeForCall,
+						pitchVelocity: params.pitch.pitchVelocity,
+						batter: params.batter,
+						playCall: playCall,
+						inningEnded: params.inningEnded
+					});
 
-					playCall += ___.bool() ?
-						result.runnerLastName + ' takes off to ' + appConstants.NUMBERS_FOR_DISPLAY[result.attemptedBase] + ' base ' + 
-							(result.success ? ' and beats the throw' + ((result.attemptedBase === 2 && resultingBaseRunners.length === 1) ? ' from ' + catcher.lastName + ', putting ' + offense.name + ' in scoring position' : '') : ' but is thrown out') + '. ' :
-						'Steal attempt by ' + result.runnerLastName + (result.success ? (result.attemptedBase === 3 ? ' beats the throw from ' + catcher.lastName + ' and puts ' + offense.name + ' 90 ft away from a run' : ' succeeds') : ' fails as he is tagged out before touching the bag. Great throw from ' + catcher.lastName) + '. ';
-					
-					//stolen base can result in inning end and pitcher change
-					if(pitcherChange){
-						playCall += generatePitcherChangePlayCall(___, pitcherChange, defense);
-					}
-
-					if(baseRunningResults.clearBases){
-						playByPlay[params.inning].unshift({
-							count: (params.balls + '-' + params.strikes),
-							bases: params.bases.code,
-							outs: params.outs,
-							pitcher: params.pitcher,
-							pitchType: pitchType,
-							pitchVelocity: params.pitch.pitchVelocity,
-							batter: params.batter,
-							playCall: playCall,
-							inningEnded: params.inningEnded
-						});
-
-						return playByPlay;
-					}
+					return playByPlay;
 				}
 			}
 
@@ -137,7 +143,6 @@ module.exports = function(module){
 
 			//SWUNG
 			if(battingResults.swung){
-
 				//CONTACT MADE
 				if(battingResults.contactMade){
 					//FOULED AWAY
@@ -189,7 +194,7 @@ module.exports = function(module){
 
 							var homeRunCallOne = (___.bool() && runnersBattedIn && !grandSlam) ?
 								batter.lastName + ' hits a ' + appConstants.NUMBERS_WORDS_FOR_DISPLAY[runnersBattedIn + 1] + '-run shot ' + hitDistance + ' to ' + hitSectionForCall + '! ' + 
-									(goAheadHR ? offense.name + ' takes the lead! ' : (batter.HR > 1 ? 'His ' + appConstants.NUMBERS_FOR_DISPLAY[batter.HR] + ' of the day! ': (offenseScorelessBeforePlay ? offense.name + ' is now on the board. ' : ' And the ' + leadWord + ' is ' + leadAction))) : 
+									(goAheadHR ? offense.name + ' takes the lead! ' : (batter.HR > 1 ? 'His ' + appConstants.NUMBERS_FOR_DISPLAY[batter.HR] + ' of the day! ' : (offenseScorelessBeforePlay ? offense.name + ' is now on the board. ' : ' And the ' + leadWord + ' is ' + leadAction))) : 
 								batter.lastName + ' ' + battingConstants.BATTED_BALL_DESC_FOR_DISPLAY_NO_PITCH_TYPE[battedBallType] + ' deep...HOME RUN! ' + offense.name + '\'s ' + appConstants.NUMBERS_FOR_DISPLAY[offense.battingTotals.totalHRs] + ' of the day' + (goAheadHR ? ' as they take the lead. ' : '. ');
 
 							var homeRunCallTwo = ___.bool() ?
@@ -227,6 +232,7 @@ module.exports = function(module){
 								var firstThrowRunner = _.find(offense.players, function(player){
 									return ((player.position === firstThrowBaseRunnerPosition) && !player.inactive);
 								});
+
 								var firstRunnerScores = (baseRunningResults.firstAttemptRunnerSafe && (firstThrowBase === 4));
 								var firstThrowRunnerIsBatter = (firstThrowBaseRunnerPosition === batter.position);
 			
@@ -445,17 +451,20 @@ module.exports = function(module){
 				}
 			}
 			
+
+
+			//PITCHER CHANGE
 			if(pitcherChange){
 				playCallPartTwo += generatePitcherChangePlayCall(___, pitcherChange, defense);
 			}
 
-			//insert each new play at beginning so they latest show on top
+			//insert each new play at the beginning of the array so the latest shows on top
 			playByPlay[params.inning].unshift({
 				count: (params.balls + '-' + params.strikes),
 				bases: params.bases.code,
 				outs: params.outs,
 				pitcher: params.pitcher,
-				pitchType: pitchType,
+				pitchType: pitchTypeForCall,
 				pitchVelocity: params.pitch.pitchVelocity,
 				batter: params.batter,
 				playCall: playCall,
@@ -466,6 +475,9 @@ module.exports = function(module){
 			return playByPlay;
 		}
 
+		/**
+		 * Generate a play call addendum when pitcher change occurs.
+		 */
 		function generatePitcherChangePlayCall(___, pitcherChange, defense){
 			var inningsPitched = Math.floor(pitcherChange.takenOut.inningsPitched);
 			var partialInningsPitched = ('.' + gamePlayService.outs());
@@ -483,6 +495,9 @@ module.exports = function(module){
 			return (___.bool() ? pitcherChangeCallOne : pitcherChangeCallTwo);
 		}
 
+		/**
+		 * Clears out the game's play calls and announcements.
+		 */
 		function resetPlayByPlay(){
 			playByPlay = {};
 		}

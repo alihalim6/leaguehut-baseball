@@ -1,3 +1,6 @@
+/**
+ * Controller for the page where user can analyze and choose teams for the game.
+ */
 module.exports = function(module){
 	module.controller('chooseTeamsCtrl', chooseTeamsCtrl);
 
@@ -13,6 +16,7 @@ module.exports = function(module){
 				_.each(team.players, function(player){
 					player.skillsList = [];
 
+					//set player's list of skills to display in his player info modal
 					if(player.infield){
 						var infieldSkillsList = (player.position === appConstants.GAME_PLAY.POSITIONS.PITCHER) ? appConstants.PLAYER_SKILLS_DISPLAY.PITCHERS : appConstants.PLAYER_SKILLS_DISPLAY.INFIELD;
 						player.skillsList.push.apply(player.skillsList, infieldSkillsList);
@@ -34,6 +38,9 @@ module.exports = function(module){
 			$(document).ready(initializeSlides);
 		});
 
+		/**
+		 * Sets up the carousel of teams that user can swipe/click through and analyze players by viewing their ratings and modal.
+		 */
 		function initializeSlides(){
 			$scope.bullpenToggle = appConstants.BULLPEN_INITIAL_TOGGLE;
 
@@ -45,10 +52,10 @@ module.exports = function(module){
 
 	  		$scope.gameTeams = [];
 
-	  		//allow modal to be shared with gamePlay component ($ctrl syntax)
+	  		//allow modal to be shared with gamePlay component (which uses $ctrl syntax)
 	  		$scope.$ctrl = {
 	  			closePlayerInfoModal: function(playerId){
-					//clear out headshot if click on different player than previous; otherwise, new one is appended
+					//clear out headshot if user clicks on different player than previous
 					if($scope.$ctrl.playerInfo && playerId && (playerId !== $scope.$ctrl.playerInfo.playerId)){
 						$('.player-info-modal').find('.face').remove();
 					}
@@ -62,19 +69,17 @@ module.exports = function(module){
 
 					var player = _.find(team.players, {id: playerId});
 					var overallRatingNumerator = (player.awareness + player.consistency + player.hitPower + player.throwPower);
-					overallRatingNumerator += player.infield ? 0 : player.runSpeed;
-					var overallRatingDenominator = player.infield ? 4 : 5;
+					overallRatingNumerator += (player.infield ? 0 : player.runSpeed);
+					var overallRatingDenominator = (player.infield ? 4 : 5);
 
-					if(player.position === 'P'){
+					if(player.position === appConstants.GAME_PLAY.POSITIONS.PITCHER){
 						overallRatingNumerator += (player.fastball + player.breakingBall + player.changeup);
 						overallRatingDenominator += 3;
 					}
 
 					var overallRating = (overallRatingNumerator / overallRatingDenominator);
 					
-					if(skillRating){
-						skillRating = player[_.camelCase(skillRating)];
-					}
+					if(skillRating) skillRating = player[_.camelCase(skillRating)];
 
 					var rating = Math.floor(skillRating || overallRating);
 			
@@ -85,16 +90,21 @@ module.exports = function(module){
 				}
 	  		};
 
-	  		///////////////////////////////
-			//$scope.gameTeams[0] = _.find($scope.teams, {id: 9});//1 - RH batter; 2-LH
-			//$scope.gameTeams[1] = _.find($scope.teams, {id: 6});//9 - RH pitcher; 10-LH
+			//$scope.gameTeams[0] = _.find($scope.teams, {id: 9});
+			//$scope.gameTeams[1] = _.find($scope.teams, {id: 6});
 			//$scope.gameInProgress = true;
 		}
 
+		/**
+		 * Returns the appropriate player info modal element based on whether or not user is on the choose teams page or in a game.
+		 */
 		function getPlayerInfoModalId(){
 			return ($scope.gameInProgress ? '#playerInfoGamePlay' : '#playerInfoChooseTeams');
 		}
 
+		/**
+		 * Opens an info modal for the given player.
+		 */
 		$scope.showPlayerInfo = function(team, playerId){
 			$scope.$ctrl.closePlayerInfoModal(playerId);
 			var player = _.find(team.players, {id: playerId});
@@ -109,13 +119,13 @@ module.exports = function(module){
 				playerName: player.fullName,
 				position: player.position,
 				skillsList: player.skillsList,
-				isPitcher: (player.position === 'P'),
+				isPitcher: (player.position === appConstants.GAME_PLAY.POSITIONS.PITCHER),
 				fastballPercentage: fastballPercentage,
 				sliderPercentage: sliderPercentage,
 				curveballPercentage: curveballPercentage,
 				changeupPercentage: changeupPercentage,
 
-				//absolute positioning for the pitch percentages
+				//these indeces determine the absolute positioning for the pitch percentages
 				curveballPercentageIndex: (sliderPercentage ? 3 : 2),
 				changeupPercentageIndex: ((curveballPercentage && sliderPercentage) ? 4 : ((curveballPercentage || sliderPercentage) ? 3 : 2)),
 
@@ -131,18 +141,30 @@ module.exports = function(module){
 			$(getPlayerInfoModalId()).show();
 		}
 
+		/**
+		 * Sets the appropriate label for the section of the team slide that shows the middle reliever and closer based on whether user opened or closed it.
+		 */
 		$scope.toggleBullpen = function(){
 			$scope.bullpenToggle = ($scope.bullpenToggle === appConstants.BULLPEN_INITIAL_TOGGLE) ? appConstants.BULLPEN_SECONDARY_TOGGLE : appConstants.BULLPEN_INITIAL_TOGGLE;
 		}
 
+		/**
+		 * Goes to the previous team slide.
+		 */
 		$scope.prevSlide = function(){
 			$('.choose-teams-carousel').slick('slickPrev');
 		}
 
+		/**
+		 * Goes to the next team slide.
+		 */
 		$scope.nextSlide = function(){
 			$('.choose-teams-carousel').slick('slickNext');
 		}
 
+		/**
+		 * Handles the selection of a team from its slide.
+		 */
 		$scope.chooseTeam = function(teamId, teamName){
 			$scope.teamChosen[teamId] = true;
 
@@ -159,11 +181,17 @@ module.exports = function(module){
 			});
 		}
 
+		/**
+		 * Handles the removal of a previously selected team.
+		 */
 		$scope.removeChosenTeam = function(removedTeamIndex, teamId){
 			$scope.teamChosen[teamId] = false;
 			$scope.chosenTeams.splice(removedTeamIndex, 1);
 		}
 
+		/**
+		 * Handles the launch of a game after two teams have been chosen and clears out any service data that may be lingering.
+		 */
 		$scope.startGame = function(){
 			$scope.gameTeams = [];
 			$scope.gameTeams[0] = _.find($scope.teams, {id: $scope.chosenTeams[0].id});
@@ -176,10 +204,13 @@ module.exports = function(module){
 			$scope.gameInProgress = true;
 		}
 
+		/**
+		 * Resets the choose teams page if a game is closed.
+		 */
 		$scope.$watch('gameInProgress', function(value){
 			$scope.gameInProgress = value;
 
-			//reset view after game is closed
+			//game not in progress
 			if(!value){
 				initializeSlides();
 				$scope.chosenTeams = [];

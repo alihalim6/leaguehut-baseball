@@ -1,3 +1,6 @@
+/**
+ * Utility functions used throughout the application.
+ */
 module.exports = function(module){
 	module.service('appUtility', appUtilityService);
 
@@ -9,7 +12,6 @@ module.exports = function(module){
 			getRandomDecimalInclusive: getRandomDecimalInclusive,
 			get100minusAttribute: get100minusAttribute,
 			formatInning : formatInning,
-			formatOuts: formatOuts,
 			determinePitchCountForGame: determinePitchCountForGame,
 			determineQualityOrBatterPitchID: determineQualityOrBatterPitchID,
 			isPitchInStrikeZone: isPitchInStrikeZone,
@@ -34,18 +36,30 @@ module.exports = function(module){
 
 		return api;
 
+		/**
+		 * Returns a random integer bewteen the given min and max, inclusive.
+		 */
 		function getRandomIntInclusive(_min, _max) {
   			return (new Chance).integer({min: _min, max: _max});
 		}
 
+		/**
+		 * Returns a random float bewteen the given min and max with the given number of decimal places, inclusive.
+		 */
 		function getRandomDecimalInclusive(_min, _max, _decimalPlaces) {
   			return (new Chance).floating({min: _min, max: _max, fixed: _decimalPlaces});
 		}
 
+		/**
+		 * Returns the result of subtracting the given number from 100.
+		 */
 		function get100minusAttribute(attribute){
 			return (100 - attribute);
 		}
 
+		/**
+		 * Returns a a representation of the current inning as requested.
+		 */
 		function formatInning(inning, noHalf){
 			var half;
 			var suffix = 'th';
@@ -73,46 +87,47 @@ module.exports = function(module){
 			return (half + ' ' + inningNoHalf);
 		}
 
-		function formatOuts(outs){
-			return outs + (outs === 1 ? " Out" : " Outs");
-		}
-
+		/**
+		 * Returns a pitcher's target pitch count for the game based on his predefined base amount.
+		 */
 		function determinePitchCountForGame(pitcherBaseCount){
-			return getRandomIntInclusive(pitcherBaseCount - pitchConstants.GAME_PITCH_COUNT_RANGE, pitcherBaseCount + pitchConstants.GAME_PITCH_COUNT_RANGE);
+			return getRandomIntInclusive((pitcherBaseCount - pitchConstants.GAME_PITCH_COUNT_RANGE), (pitcherBaseCount + pitchConstants.GAME_PITCH_COUNT_RANGE));
 		}
 
+		/**
+		 * Multi-purpose function that returns a pitch's quality or how well a batter sees a pitch, based on skillset.
+		 */
 		function determineQualityOrBatterPitchID(rating, consistency, pitch, isForPitchQual){
-			if(consistency == 100){
-				consistency = appConstants.GAME_PLAY.DEFAULT_CONSISTENCY_IF_100;
-			}
-			else if(consistency == 0){
-				consistency = appConstants.GAME_PLAY.DEFAULT_CONSISTENCY_IF_0;
-			}
+			if(consistency == 100) consistency = appConstants.GAME_PLAY.DEFAULT_CONSISTENCY_IF_100;
+			else if(consistency == 0) consistency = appConstants.GAME_PLAY.DEFAULT_CONSISTENCY_IF_0;
 
-			var multiplierDecimal = isForPitchQual ? pitchConstants.PITCH_QUALITY_MULTIPLIER : battingConstants.BATTER_MULTIPLIER;
+			var multiplierDecimal = (isForPitchQual ? pitchConstants.PITCH_QUALITY_MULTIPLIER : battingConstants.BATTER_MULTIPLIER);
 			var multiplier = getRandomIntInclusive(0, get100minusAttribute(consistency)) * multiplierDecimal;
 			var delta = 0;
 			var aidedByConsistency = (getRandomIntInclusive(0, 100) <= consistency);
+			var property = rating;
 
 			if(multiplier > 0){
-				if(pitch && (pitch.pitchType === pitchConstants.PITCH_TYPES.FASTBALL)){
-					delta = (pitch.pitchVelocity * multiplier);
-				}
-				else{
-					delta = (rating * multiplier);
-				}
+				if(pitch && (pitch.pitchType === pitchConstants.PITCH_TYPES.FASTBALL)) property = pitch.pitchVelocity;
 
-				delta *= aidedByConsistency ? 1 : -1;
+				delta = (property * multiplier);
+				delta *= (aidedByConsistency ? 1 : -1);
 				rating = (rating + delta);
 			}
 
 			return rating;
 		}
 
+		/**
+		 * Returns whether or not a pitch was thrown in a batter's strike zone.
+		 */
 		function isPitchInStrikeZone(pitchLocation){
 			return (pitchLocation.indexOf('S') == 0);
 		}
 
+		/**
+		 * Returns the leverage position of a pitcher based on the current count.
+		 */
 		function pitcherCountPosition(balls, strikes){
 			//even
 			if(balls === strikes) return 'even';
@@ -123,6 +138,9 @@ module.exports = function(module){
 			else if(balls < strikes) return 'ahead';
 		}
 
+		/**
+		 * Returns the leverage position of a batter based on the current count.
+		 */
 		function batterCountPosition(balls, strikes){
 			//even
 			if(balls === strikes) return 'even';
@@ -133,21 +151,24 @@ module.exports = function(module){
 			else if(balls < strikes) return 'behind';
 		}
 
+		/**
+		 * Returns the second point of a line given the first point, distance and angle.
+		 */
 		function getX2Y2(x1, y1, distance, angle){
     		return {
-					x : x1 + (distance * Math.cos(angle)),
-					y : y1 + (distance * Math.sin(angle))
-				};
+				x : x1 + (distance * Math.cos(angle)),
+				y : y1 + (distance * Math.sin(angle))
+			};
     	}
 
+    	/**
+		 * Returns the angle between two points.
+		 */
     	function getAngleBetweenTwoPoints(startXY, endXY){
-			var subtractFromX = false;
-    		var subtractFromY = false;
     		var atanX = 0;
     		var atanY = 0;
 
 			if(endXY.x < startXY.x){
-				subtractFromX = true;
 				atanX = (Math.abs(endXY.x - startXY.x) * -1);
 			}
 			else{
@@ -155,7 +176,6 @@ module.exports = function(module){
 			}
 
 			if(endXY.y < startXY.y){ 
-				subtractFromY = true;
 				atanY = (Math.abs(endXY.y - startXY.y) * -1);
 			}
 			else{
@@ -166,18 +186,30 @@ module.exports = function(module){
 			return Math.atan2(atanY, atanX);
 		}
 
+		/**
+		 * Returns the distance between two points.
+		 */
     	function getDistance(start, end){
         	return Math.sqrt((Math.pow(end.x - start.x, 2)) + (Math.pow(end.y - start.y, 2)));
     	}
 
+    	/**
+		 * Converts a raw angle into radians.
+		 */
     	function convertToRadians(angle){
 		    return (angle * (Math.PI / 180));
 		}
 
+		/**
+		 * Returns whether or not there were runners in scoring position on a play.
+		 */
 		function RISP(runners){
 			return ((runners != 0) && (runners != 1));
 		}
 
+		/**
+		 * Returns a base velocity for a player given his position.
+		 */
 		function determineBaseThrowVelocity(player, infielder){
 			if(player){
 				if(!infielder){
@@ -189,26 +221,33 @@ module.exports = function(module){
 			}
 
 			return fieldingConstants.THROW_VELOCITY_INFIELDER;
-			
 		}
 
+		/**
+		 * Converts the given mph to fps.
+		 */
 		function mphToFps(mph){
 			return (mph * 1.466668);
 		}
 
+		/**
+		 * Rounds the given number down to the nearest number that 5 is a factor of.
+		 */
 		function roundDownToNearest5(x){
     		return (Math.floor(x / 5) * 5);
 		}
 
+		/**
+		 * Returns true if there was a fielder's choice on the play.
+		 */
 		function checkForFieldersChoice(fieldingResults){
-			//if batter wasn't caught out, there was an attempt on a base, and a play could have been made at base batter advanced to
+			//if batter wasn't caught out, there was an attempt on a base and a play could have been made at base batter advanced to
 			if(fieldingResults.baseBatterAdvancedTo && fieldingResults.firstThrowToBase && fieldingResults.playToBeMadeOnBatter){
-
 				//first throw was not to batter's base
 				if(fieldingResults.baseBatterAdvancedTo != fieldingResults.firstThrowToBase){
 
 					//second throw was not to batter's base either
-					if(fieldingResults.secondThrowToBase && fieldingResults.baseBatterAdvancedTo != fieldingResults.secondThrowToBase){
+					if(fieldingResults.secondThrowToBase && (fieldingResults.baseBatterAdvancedTo !== fieldingResults.secondThrowToBase)){
 						return true;
 					}
 					//there was no second throw after first throw to base other than batter's
@@ -224,15 +263,23 @@ module.exports = function(module){
 			return false;
 		}
 
+		/**
+		 * Returns whether or not the batter on a play grounded into a double play.
+		 */
 		function GIDP(battingResults, baseRunningResults){
-			return ((battingResults.battedBallType === battingConstants.BATTED_BALL_TYPES.GROUND_BALL) 
-				&& (baseRunningResults.firstAttemptRunnerSafe === false) && (baseRunningResults.secondAttemptRunnerSafe === false));
+			return ((battingResults.battedBallType === battingConstants.BATTED_BALL_TYPES.GROUND_BALL) && (baseRunningResults.firstAttemptRunnerSafe === false) && (baseRunningResults.secondAttemptRunnerSafe === false));
 		}
 
+		/**
+		 * Returns whether or not the run(s) batted in on a play should be tallied as such for a batter.
+		 */
 		function validRBI(batter, battingResults, fieldingResults, baseRunningResults, currOffenseScore, prevOffenseScore){
 			return (battingResults.putIntoPlay && !fieldingResults.errorOnPlay && (currOffenseScore !== prevOffenseScore) && !GIDP(battingResults, baseRunningResults));
 		}
 
+		/**
+		 * Returns whether or not the batter was thrown out at first base on a play.
+		 */
 		function batterThrownOutAt1st(batter, runnersThrownOut){
 			var batterThrownOut = false;
 
@@ -246,10 +293,16 @@ module.exports = function(module){
 			return batterThrownOut;
 		}
 
+		/**
+		 * Returns whether or not the last at bat should be counted as such.
+		 */
 		function validAtBat(battingResults, fieldingResults, sacrificeFly){
 			return (!battingResults.hitByPitchOrWalk && !sacrificeFly && !fieldingResults.sacrificeBunt) /*OR REACH ON INTERFERANCE*/;
 		}
 
+		/**
+		 * Returns a partial description of where a pitch was thrown relative to the batter's strike zone.
+		 */
 		function translatePitchLocationForPlayByPlay(location){
 			var inZone = isPitchInStrikeZone(location);
 			var locationCode = (((location.length === 2) || inZone) ? location : location.substring(1, 2));
@@ -258,6 +311,9 @@ module.exports = function(module){
 			return locations[locationCode];
 		}
 
+		/**
+		 * Returns the game stat line for the current batter.
+		 */
 		function generatePlayerGameStatLine(batter){
 			return (batter.atBats ? batter.hits + ' FOR ' + batter.atBats : '') +
 					(batter.walks ? ((batter.atBats ? ', ' : '') + (batter.walks > 1 ? batter.walks + ' WALKS' : 'WALK')) : '') +

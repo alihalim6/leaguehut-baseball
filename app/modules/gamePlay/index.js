@@ -1,3 +1,6 @@
+/**
+ * Second page of the application where the game is played.
+ */
 module.exports = function(module){
 	require('./constants/pitchConstants')(module);
 	require('./constants/battingConstants')(module);

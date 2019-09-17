@@ -1,3 +1,6 @@
+/**
+ * Modal displaying information about a player.
+ */
 module.exports = function(module){
 	module.directive('playerInfoModal', playerInfoModal);
 
