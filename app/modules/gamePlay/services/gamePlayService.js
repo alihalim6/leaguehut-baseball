@@ -2,11 +2,7 @@
  * Manages count, outs, innings, teams, and other gameplay information.
  */
 module.exports = function(module){
-	module.service('gamePlayService', gamePlayService);
-
-	gamePlayService.$inject = ['appConstants', 'appUtility'];
-
-	function gamePlayService(appConstants, appUtility){
+	module.service('gamePlayService', ['appConstants', 'appUtility', function gamePlayService(appConstants, appUtility){
 		var __ = appUtility;
 
 		var teams;
@@ -782,5 +778,5 @@ module.exports = function(module){
 			gameOver = false;
 			pendingPitcherChange = null;
 		}
-	}
+	}]);
 }

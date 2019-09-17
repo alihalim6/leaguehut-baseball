@@ -2,11 +2,7 @@
  * Controller for the page where user can analyze and choose teams for the game.
  */
 module.exports = function(module){
-	module.controller('chooseTeamsCtrl', chooseTeamsCtrl);
-
-	chooseTeamsCtrl.$inject = ['$scope', 'teamsService', 'appConstants', 'baseRunningService', 'playByPlayService', 'gamePlayService'];
- 
-	function chooseTeamsCtrl($scope, teamsService, appConstants, baseRunningService, playByPlayService, gamePlayService){
+	module.controller('chooseTeamsCtrl', ['$scope', 'teamsService', 'appConstants', 'baseRunningService', 'playByPlayService', 'gamePlayService', function chooseTeamsCtrl($scope, teamsService, appConstants, baseRunningService, playByPlayService, gamePlayService){
 		teamsService.getAllTeams().then(function(teams){
 			$scope.teams = teams;
 			$scope.chosenTeams = [];
@@ -217,5 +213,5 @@ module.exports = function(module){
 				$scope.teamChosen = {};
 			}
 		});
-	}
+	}]);
 }

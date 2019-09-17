@@ -2,11 +2,7 @@
  * Utility functions used throughout the application.
  */
 module.exports = function(module){
-	module.service('appUtility', appUtilityService);
-
-	appUtilityService.$inject = ['appConstants', 'pitchConstants', 'battingConstants', 'fieldingConstants'];
-
-	function appUtilityService(appConstants, pitchConstants, battingConstants, fieldingConstants){
+	module.service('appUtility', ['appConstants', 'pitchConstants', 'battingConstants', 'fieldingConstants', function appUtilityService(appConstants, pitchConstants, battingConstants, fieldingConstants){
 		var api = {
 			getRandomIntInclusive: getRandomIntInclusive,
 			getRandomDecimalInclusive: getRandomDecimalInclusive,
@@ -327,5 +323,5 @@ module.exports = function(module){
 					(batter.hitByPitch ? ((batter.atBats || batter.walks || batter.sacFlys ? ', ' : '') + (batter.hitByPitch > 1 ? batter.hitByPitch + ' HBP' : 'HBP')) : '');
 		}
 
-	}
+	}]);
 }

@@ -2,11 +2,7 @@
  * Manages and processes activity for the game's baserunners.
  */
 module.exports = function(module){
-	module.service('baseRunningService', baseRunningService);
-
-	baseRunningService.$inject = ['gamePlayService', 'appUtility', 'appConstants', 'fieldingConstants', 'baseRunningConstants'];
-
-	function baseRunningService(gamePlayService, appUtility, appConstants, fieldingConstants, baseRunningConstants){
+	module.service('baseRunningService', ['gamePlayService', 'appUtility', 'appConstants', 'fieldingConstants', 'baseRunningConstants', function baseRunningService(gamePlayService, appUtility, appConstants, fieldingConstants, baseRunningConstants){
 		var __ = appUtility;
 		var baseRunners = [];
 		var baseRunningResults = {};
@@ -798,5 +794,5 @@ module.exports = function(module){
 			baseRunners = [];
 		}
 
-	}
+	}]);
 }

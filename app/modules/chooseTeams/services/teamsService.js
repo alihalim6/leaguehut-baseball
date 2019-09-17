@@ -2,11 +2,7 @@
  * Handles initialization and retrieval of the teams and some gameplay.
  */
 module.exports = function(module){
-	module.service('teamsService', teamsService);
-
-	teamsService.$inject = ['$q', 'appConstants', 'pitchConstants', 'appUtility'];
-
-	function teamsService($q, appConstants, pitchConstants, appUtility){
+	module.service('teamsService', ['$q', 'appConstants', 'pitchConstants', 'appUtility', function teamsService($q, appConstants, pitchConstants, appUtility){
         var __ = appUtility;
 		var firestore = firebase.firestore();
 	    var playersRef = firestore.collection('players');
@@ -525,5 +521,5 @@ module.exports = function(module){
             return boxScore;
         }
 
-	}
+	}]);
 }

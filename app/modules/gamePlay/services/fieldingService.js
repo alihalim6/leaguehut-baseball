@@ -2,11 +2,7 @@
  * Generates all of the properties of the fielding result of a ball put into play.
  */
 module.exports = function(module){
-	module.service('fieldingService', fieldingService);
-
-	fieldingService.$inject = ['gamePlayService', 'appUtility', 'appConstants', 'fieldingConstants', 'battingConstants', 'baseRunningService'];
-
-	function fieldingService(gamePlayService, appUtility, appConstants, fieldingConstants, battingConstants, baseRunningService){
+	module.service('fieldingService', ['gamePlayService', 'appUtility', 'appConstants', 'fieldingConstants', 'battingConstants', 'baseRunningService', function fieldingService(gamePlayService, appUtility, appConstants, fieldingConstants, battingConstants, baseRunningService){
 		var __ = appUtility;
 		var battingResults = {};
 		var fieldingResults = {};
@@ -1148,5 +1144,5 @@ module.exports = function(module){
 			return fieldingResults;
 		}
 
-	}
+	}]);
 }

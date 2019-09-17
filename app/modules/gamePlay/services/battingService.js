@@ -2,11 +2,7 @@
  * Generates all of the properties of the batting result of a pitch thrown.
  */
 module.exports = function(module){
-	module.service('battingService', battingService);
-
-	battingService.$inject = ['appUtility', 'gamePlayService', 'appConstants', 'battingConstants', 'pitchConstants', 'baseRunningService'];
-
-	function battingService(appUtility, gamePlayService, appConstants, battingConstants, pitchConstants, baseRunningService){
+	module.service('battingService', ['appUtility', 'gamePlayService', 'appConstants', 'battingConstants', 'pitchConstants', 'baseRunningService', function battingService(appUtility, gamePlayService, appConstants, battingConstants, pitchConstants, baseRunningService){
 		var __ = appUtility;
 		var batter = {};
 		var pitch = {};
@@ -426,5 +422,5 @@ module.exports = function(module){
 
 			return battingResults;
 		}
-	}
+	}]);
 }

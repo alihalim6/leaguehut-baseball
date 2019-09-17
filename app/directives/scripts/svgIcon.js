@@ -2,11 +2,7 @@
  * Utility directive that compiles SVGs and appends them to the DOM.
  */
 module.exports = function(module){
-	module.directive('svgIcon', svgIcon);
-
-	svgIcon.$inject = ['$templateRequest', '$compile'];
- 
-	function svgIcon($templateRequest, $compile){
+	module.directive('svgIcon', ['$templateRequest', '$compile', function svgIcon($templateRequest, $compile){
 		return {
 			restrict: 'E',
 			scope: {
@@ -30,5 +26,6 @@ module.exports = function(module){
 				scope.$watch('iconSource', processIcon);
 			}
 		}
-	}
+		
+	}]);
 }

@@ -2,11 +2,7 @@
  * Generates all of the properties of a pitch thrown.
  */
 module.exports = function(module){
-	module.service('pitchService', pitchService);
-
-	pitchService.$inject = ['appUtility', 'gamePlayService', 'pitchConstants', 'appConstants'];
-
-	function pitchService(appUtility, gamePlayService, pitchConstants, appConstants){
+	module.service('pitchService', ['appUtility', 'gamePlayService', 'pitchConstants', 'appConstants', function pitchService(appUtility, gamePlayService, pitchConstants, appConstants){
 		var __ = appUtility;
 		var pitch = {};
 		var pitcher = {};
@@ -329,5 +325,5 @@ module.exports = function(module){
 			return pitch;
 		}
 
-	}
+	}]);
 }

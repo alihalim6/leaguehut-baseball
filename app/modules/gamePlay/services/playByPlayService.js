@@ -3,11 +3,7 @@
  * Each play or announcement is an entry in an array for the inning for which it occurs.
  */
 module.exports = function(module){
-	module.service('playByPlayService', playByPlayService);
-
-	playByPlayService.$inject = ['pitchConstants', 'appConstants', 'battingConstants', 'fieldingConstants', 'appUtility', 'gamePlayService', 'baseRunningService'];
-
-	function playByPlayService(pitchConstants, appConstants, battingConstants, fieldingConstants, appUtility, gamePlayService, baseRunningService){
+	module.service('playByPlayService', ['pitchConstants', 'appConstants', 'battingConstants', 'fieldingConstants', 'appUtility', 'gamePlayService', 'baseRunningService', function playByPlayService(pitchConstants, appConstants, battingConstants, fieldingConstants, appUtility, gamePlayService, baseRunningService){
 		var __ = appUtility;
 		var playByPlay = {};
 
@@ -501,5 +497,6 @@ module.exports = function(module){
 		function resetPlayByPlay(){
 			playByPlay = {};
 		}
-	}
+
+	}]);
 }
