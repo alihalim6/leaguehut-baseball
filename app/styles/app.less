@@ -1,3 +1,7 @@
+@app-border-radius: 5px;
+
+
+
 @team-1-primary-color: #97a347;
 @team-1-secondary-color: #3f6f65;
 @font-face {
@@ -337,7 +341,7 @@
 	    height: auto;
 	    width: 290px;
 	    background-color: white;
-	    border-radius: 5px;
+	    border-radius: @app-border-radius;
 	    border: 2px solid #cccccc;
 	    box-shadow: 0 56px 69px rgba(0,0,0,0.30), 0 29px 36px rgba(0,0,0,0.22);
 
@@ -376,7 +380,7 @@
 	    .player-name {
 	        width: 75%;
 		    text-align: right;
-		    border-radius: 5px 0px 5px 0px;
+		    border-radius: @app-border-radius 0px @app-border-radius 0px;
 		    font-size: 14px;
 		    font-weight: 600;
 		    color: #FFFFFF;

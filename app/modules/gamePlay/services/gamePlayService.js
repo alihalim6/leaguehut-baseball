@@ -62,7 +62,7 @@ module.exports = function(module){
 			getPitcherChange: getPitcherChange,
 			
 			resetGame: resetGame
-		}
+		};
 
 		return api;
 

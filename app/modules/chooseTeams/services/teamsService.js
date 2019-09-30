@@ -14,7 +14,7 @@ module.exports = function(module){
             getAllTeams: getAllTeams,
             setUpTeamStats: setUpTeamStats,
             setUpBoxScore: setUpBoxScore
-        }
+        };
 
         return api;
 

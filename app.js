@@ -14,7 +14,7 @@ var _ = require('lodash');
 _.camelCase = require('lodash.camelcase');
 var angular = require('angular');
 var ngRoute = require('angular-route');
-var app = angular.module('leaguehutBaseball', ['ngRoute']);
+var app = angular.module('leagueHutBaseball', ['ngRoute']);
 
 require('./init')(app);
 require('./app/styles/app.less');

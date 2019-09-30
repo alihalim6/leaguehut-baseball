@@ -5,16 +5,25 @@
 @corner-outfielder-top: 180px;
 @bottom-top: 646px;
 
+@animate-nav-distance: 10px;
+@button-border-width: 2px;
+@app-border-radius: 5px;
+@bullpen-left: 21px;
+@slide-fade-width: 25px;
+
 .play-ball-button {
-	background-color: #0a4f6f;
-    color: #ffffff;
+	background-color: #ffffff;
+    color: #444444;
     font-size: 25px;
+    font-weight: 800;
     font-family: sans-serif;
-    border-radius: 5px;
+    border-radius: @app-border-radius;
     cursor: pointer;
     position: absolute;
-    margin-left: 26px;
-    padding: 6px;
+    top: -11px;
+    margin-left: 54px;
+    padding: 12px;
+    border-width: @button-border-width;
 }
 
 .choose-teams-carousel {
@@ -46,14 +55,16 @@
 		    top: 12px;
 		    right: 20px;
 		    font-size: 14px;
-		    background-color: #22c402;
+		    font-weight: 600;
 		    font-family: sans-serif;
-		    color: #ffffff;
+		    background-color: #ffffff;
+		    color: #444444;
 		    height: 48px;
 		    width: 72px;
 		    letter-spacing: normal;
 		    text-shadow: none;
-		    border-radius: 5px;
+		    border-radius: @app-border-radius;
+		    border-width: @button-border-width;
 		    cursor: pointer;
     	}
 
@@ -67,6 +78,7 @@
 	        font-family: sans-serif;
 	    	position: absolute;
 	    	top: 515px;
+	    	left: @bullpen-left;
 	    	cursor: pointer;
 	    }
 
@@ -82,7 +94,14 @@
 	    	position: absolute;
 			top: 290px;
 			left: 13px;
+			-webkit-animation: animate-left-nav 1s ease-in-out both infinite;
+	    	animation: animate-left-nav 1s ease-in-out both infinite;
 	    }
+
+		@keyframes animate-left-nav {
+			50% {transform: translateX(-@animate-nav-distance)}
+			100% {transform: translateX(0px)}
+		}
 
 	    .slide-nav-chevron > svg{
 			height: 50px;
@@ -91,6 +110,13 @@
 
 	    .slide-nav-chevron-right {
 			left: 784px;
+			-webkit-animation: animate-right-nav 1s ease-in-out both infinite;
+	    	animation: animate-right-nav 1s ease-in-out both infinite;
+		}
+
+		@keyframes animate-right-nav {
+			50% {transform: translateX(@animate-nav-distance)}
+			100% {transform: translateX(0px)}
 		}
 
 	    .slide-nav-chevron-right > svg{
@@ -98,9 +124,14 @@
 			width: 50px;
 		}
 
+		.slide-nav-chevron:hover {
+			-webkit-animation: none;
+	    	animation: none;
+		}
+
 		.player-on-field {
 			position: absolute;
-		    border-radius: 5px;
+		    border-radius: @app-border-radius;
 		    height: 72px;
 		    min-width: 245px;
 		    text-align: right;
@@ -121,8 +152,6 @@
 
 		    .choose-teams-player-headshot {
 		    	position: absolute;
-			    //height: 90px;
-			    //width: 88px;
 			    top: -18px;
 			    left: 1px;
 		    }
@@ -137,7 +166,7 @@
 			    width: 83%;
 			    position: absolute;
 			    left: 0px;
-			    border-radius: 5px 0px 5px 0px;
+			    border-radius: @app-border-radius 0px @app-border-radius 0px;
 			    font-size: 14px;
 			    font-weight: 600;
 			    color: #FFFFFF;
@@ -163,6 +192,11 @@
 		    }
 		}
 
+		.player-on-field:hover {
+			transform: translateY(-6px);
+			box-shadow: 0 10px 15px rgba(0,0,0,0.30), 0 12px 16px rgba(0,0,0,0.22);
+		}
+
 		.starting-pitcher {
 			top: 415px;
     		left: @center-left;
@@ -170,12 +204,12 @@
 
 		.middle-reliever {
 			top: @middle-reliever-top;
-    		left: 0px;
+    		left: @bullpen-left;
 		}
 
 		.closer {
 			top: @bottom-top;
-    		left: 0px;
+    		left: @bullpen-left;
 		}
 
 		.catcher {
@@ -190,7 +224,7 @@
 
 		.second-baseman {
 			top: @inner-infield-top;
-    		left: 450px;
+    		left: 445px;
 		}
 
 		.third-baseman {
@@ -221,5 +255,27 @@
 		.player-hidden {
 			display: none;
 		}
+	}
+
+	.team-slide:before {
+		content: "";
+		position: absolute;
+		z-index: 1;
+		top: 0px;
+		left: 0px;
+		width: @slide-fade-width;
+		height: 100%;
+		background-image : linear-gradient(to left, rgba(255,255,255, 0), rgba(255,255,255, 1) 90%);
+	}
+
+	.team-slide:after {
+		content: "";
+		position: absolute;
+		z-index: 1;
+		top: 0px;
+		right: 0px;
+		width: @slide-fade-width;
+		height: 100%;
+		background-image : linear-gradient(to right, rgba(255,255,255, 0), rgba(255,255,255, 1) 90%);
 	}
 }

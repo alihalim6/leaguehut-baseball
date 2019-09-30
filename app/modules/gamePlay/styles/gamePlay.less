@@ -1,3 +1,5 @@
+@app-border-radius: 5px;
+
 @current-pitcher-alignment: 651px;
 @current-batter-alignment: 574px;
 @pitcher-silhouette-position: 509px;
@@ -89,7 +91,7 @@
 	margin: 23px 0px;
     height: 54px;
     position: relative;
-    border-radius: 5px;
+    border-radius: @app-border-radius;
 
     .current-inning {
     	display: inline-block;
@@ -117,7 +119,7 @@
 
 	.current-player {
 		position: absolute;
-	    border-radius: 5px;
+	    border-radius: @app-border-radius;
 	    height: 72px;
 	    width: 200px;
 	    text-align: right;
@@ -152,7 +154,7 @@
 		    width: 81%;
 		    position: absolute;
 		    left: 0px;
-		    border-radius: 5px 0px 5px 0px;
+		    border-radius: @app-border-radius 0px @app-border-radius 0px;
 		    font-size: 14px;
 		    font-weight: 600;
 		    color: #FFFFFF;
@@ -416,7 +418,7 @@
 
 .player-box-score {
 	.table-styles;
-	border-radius: 5px;
+	border-radius: @app-border-radius;
 	margin-top: 54px;
 	margin-left: 12px;
 	margin-bottom: 10px;
@@ -503,7 +505,7 @@
 	.plays {
 		margin: 5px 12px 20px;
 		border: 2px solid #cccccc;
-		border-radius: 5px;
+		border-radius: @app-border-radius;
 		max-height: 215px;
     	overflow: scroll;
 
