@@ -6,6 +6,8 @@
 @bottom-top: 646px;
 
 @animate-nav-distance: 10px;
+@animate-nav-duration: 1s;
+@animate-nav-count: 4;
 @button-border-width: 2px;
 @app-border-radius: 5px;
 @bullpen-left: 21px;
@@ -96,13 +98,18 @@
 	    	position: absolute;
 			top: 290px;
 			left: 13px;
-			-webkit-animation: animate-left-nav 1s ease-in-out both infinite;
-	    	animation: animate-left-nav 1s ease-in-out both infinite;
+			-webkit-animation: animate-left-nav @animate-nav-duration ease-in-out both @animate-nav-count;
+	    	animation: animate-left-nav @animate-nav-duration ease-in-out both @animate-nav-count;
 	    }
 
 		@keyframes animate-left-nav {
 			50% {transform: translateX(-@animate-nav-distance)}
 			100% {transform: translateX(0px)}
+		}
+
+		.slide-nav-chevron:hover {
+			-webkit-animation: animate-left-nav @animate-nav-duration ease-in-out both infinite;
+	    	animation: animate-left-nav @animate-nav-duration ease-in-out both infinite;
 		}
 
 	    .slide-nav-chevron > svg{
@@ -112,8 +119,8 @@
 
 	    .slide-nav-chevron-right {
 			left: 784px;
-			-webkit-animation: animate-right-nav 1s ease-in-out both infinite;
-	    	animation: animate-right-nav 1s ease-in-out both infinite;
+			-webkit-animation: animate-right-nav @animate-nav-duration ease-in-out both @animate-nav-count;
+	    	animation: animate-right-nav @animate-nav-duration ease-in-out both @animate-nav-count;
 		}
 
 		@keyframes animate-right-nav {
@@ -126,9 +133,9 @@
 			width: 50px;
 		}
 
-		.slide-nav-chevron:hover {
-			-webkit-animation: none;
-	    	animation: none;
+		.slide-nav-chevron-right:hover {
+			-webkit-animation: animate-right-nav @animate-nav-duration ease-in-out both infinite;
+	    	animation: animate-right-nav @animate-nav-duration ease-in-out both infinite;
 		}
 
 		.player-on-field {
