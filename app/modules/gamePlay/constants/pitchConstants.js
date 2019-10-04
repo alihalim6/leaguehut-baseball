@@ -234,7 +234,7 @@ module.exports = function(module){
 
 			//R HIGH INSIDE/L HIGH AWAY
 			{
-				locations: ['RHI, LHA'],
+				locations: ['RHI', 'LHA'],
 				repositionLimitY: PITCH_ANIMATION_GLOBAL.MAX_TOP_HIGH,
 				zoneLimitY: PITCH_ANIMATION_GLOBAL.MIN_TOP_FOR_HIGH_MISCALLED_STRIKE,
 				repositionLimitX: PITCH_ANIMATION_GLOBAL.MAX_LEFT_FOR_LEFT_MISCALLED_BALL,
@@ -254,7 +254,7 @@ module.exports = function(module){
 
 			//R LOW INSIDE/L LOW AWAY
 			{
-				locations: ['RLI, LLA'],
+				locations: ['RLI', 'LLA'],
 				repositionLimitY: PITCH_ANIMATION_GLOBAL.MAX_TOP_FOR_LOW_MISCALLED_STRIKE,
 				zoneLimitY: PITCH_ANIMATION_GLOBAL.MIN_TOP_LOW,
 				repositionLimitX: PITCH_ANIMATION_GLOBAL.MAX_LEFT_FOR_LEFT_MISCALLED_BALL,
