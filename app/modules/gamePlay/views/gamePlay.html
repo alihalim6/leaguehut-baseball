@@ -217,7 +217,12 @@
 			<table class="player-box-score">
 				<thead>
 					<tr>
-						<th ng-repeat="category in $ctrl.playerBattingCategories">{{::category}}</th>
+						<th ng-repeat="category in $ctrl.playerBattingCategories">
+							<div class="tooltip">
+								<span ng-if="category.tooltip" class="tooltip-text">{{::category.tooltip}}</span>
+								{{::category.label}}
+							</div>
+						</th>
 					</tr>
 				</thead>
 				<tbody>
@@ -256,7 +261,12 @@
 			<table class="player-box-score pitcher-box-score">
 				<thead>
 					<tr>
-						<th ng-repeat="category in $ctrl.pitchingCategories">{{::category}}</th>
+						<th ng-repeat="category in $ctrl.pitchingCategories">
+							<div class="tooltip">
+								<span ng-if="category.tooltip" class="tooltip-text low-tooltip-text">{{::category.tooltip}}</span>
+								{{::category.label}}
+							</div>
+						</th>
 					</tr>
 				</thead>
 				<tbody>

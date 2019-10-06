@@ -255,6 +255,33 @@
 	overflow: auto;
 }
 
+.tooltip-text {
+	font-size: 9px;
+  	visibility: hidden;
+  	width: auto;
+  	background-color: #ffffff;
+  	color: #0a4f6f;
+  	text-align: center;
+  	padding: 5px;
+  	border-radius: @app-border-radius;
+  	border: 2px solid #0a4f6f;	 
+  	position: absolute;
+  	top: 34px;
+  	z-index: 1;
+}
+
+.low-tooltip-text {
+	top: 449px;
+}
+
+.tooltip:hover .tooltip-text {
+  visibility: visible;
+}
+
+.tooltip:hover .low-tooltip-text {
+  visibility: visible;
+}
+
 .chosen-teams {
 	position: absolute;
 	top: 87px;
@@ -480,13 +507,14 @@
 	.team-stats-modal {
 		.player-info-modal;
 		margin: -13px auto;
-		width: 682px;
-		height: 706px;
+		width: fit-content;
+		height: auto;
 
 		.team-stats-modal-table {
 			width: 657px;
 			text-align: left;
 			margin-top: 10px;
+			margin-right: 13px;
 			padding-right: 0px;
 
 			th {
@@ -497,6 +525,10 @@
 		    	padding-left: 8px;
 		    	border-top: 1px solid #eeeeee;
 		    	border-right: 1px solid #eeeeee;
+		    }
+
+		    tr {
+		    	white-space: nowrap;
 		    }
 
 		    .team-stat {

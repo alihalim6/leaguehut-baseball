@@ -38,13 +38,7 @@ module.exports = function(module){
 		function generateVelocity(velocity){
 			var delta = chance.bool() ? 1 : -1;
 
-			if(pitcher.consistency < pitchConstants.CON_TIER_3_MIN){
-				velocity += (delta * __.getRandomIntInclusive(0, 4));
-			}			
-			else if(pitcher.consistency < pitchConstants.CON_TIER_2_MIN){
-				velocity += (delta * __.getRandomIntInclusive(0, 3));
-			}			
-			else if(pitcher.consistency < pitchConstants.CON_TIER_1_MIN){
+			if(pitcher.consistency < pitchConstants.CON_TIER_MIN){
 				velocity += (delta * __.getRandomIntInclusive(0, 2));
 			}			
 			else{

@@ -43,9 +43,7 @@ module.exports = function(module){
 	module.constant('pitchConstants', {
 		GAME_PITCH_COUNT_RANGE: 10,
 
-		CON_TIER_1_MIN : 80,
-		CON_TIER_2_MIN : 50,
-		CON_TIER_3_MIN : 15,
+		CON_TIER_MIN : 50,
 
 		AVG_SL_VELOCITY_REL_TO_FB : 8,
 		AVG_CB_VELOCITY_REL_TO_FB : 14,

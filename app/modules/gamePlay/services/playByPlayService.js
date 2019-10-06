@@ -475,9 +475,10 @@ module.exports = function(module){
 		 * Generate a play call addendum when pitcher change occurs.
 		 */
 		function generatePitcherChangePlayCall(___, pitcherChange, defense){
-			var inningsPitched = Math.floor(pitcherChange.takenOut.inningsPitched);
-			var partialInningsPitched = ('.' + gamePlayService.outs());
-			var inningWord = ((inningsPitched > 1) ? ' innings' : ' inning');
+			var inningsPitched = pitcherChange.takenOut.inningsPitched;
+			var wholeInningsPitched = Math.floor(inningsPitched);
+			var partialInningsPitched = inningsPitched.toString().substring(1);
+			var inningWord = ((wholeInningsPitched > 1) ? ' innings' : ' inning');
 
 			var pitcherChangeCallOne = ___.bool() ?
 				'And ' + defense.name + ' calls it a day for ' + pitcherChange.takenOut.lastName + '. ' :
@@ -485,7 +486,7 @@ module.exports = function(module){
 			
 			var pitcherChangeCallTwo = ___.bool() ?
 				(pitcherChange.dueToBadPerformance ? pitcherChange.takenOut.lastName + '\'s stuff is just not where it should be today and ' + defense.name + (pitcherChange.changeOnInningEnd ? ' will bring in ' + pitcherChange.broughtIn.lastName + ' next inning' : ' brings in ' + pitcherChange.broughtIn.lastName) + '. ' :
-					'And that\'s it for ' + pitcherChange.takenOut.lastName + ' after ' + inningsPitched + pitchConstants.PARTIAL_INNINGS_DISPLAY[partialInningsPitched] + inningWord + ' as ' + defense.name + ' will go to the bullpen. ') :
+					'And that\'s it for ' + pitcherChange.takenOut.lastName + ' after ' + wholeInningsPitched + pitchConstants.PARTIAL_INNINGS_DISPLAY[partialInningsPitched] + inningWord + ' as ' + defense.name + ' will go to the bullpen. ') :
 				(pitcherChange.changeOnInningEnd ? pitcherChange.broughtIn.lastName + ' will be pitching next inning for ' + defense.name : 'And after a visit to the mound, ' + pitcherChange.broughtIn.lastName + ' comes in for ' + pitcherChange.takenOut.lastName) + '. ';
 
 			return (___.bool() ? pitcherChangeCallOne : pitcherChangeCallTwo);

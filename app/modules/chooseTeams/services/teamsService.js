@@ -205,7 +205,52 @@ module.exports = function(module){
             var teamIndex = 0;
             var boxScore = {};
 
-            boxScore.playerBattingCategories = [' ', 'AB', 'R', 'H', 'TB', 'RBI', 'HR', 'BB', 'SO', 'LOB', 'E'];
+            boxScore.playerBattingCategories = [
+                {
+                    label: ' '
+                },
+                {
+                    label: 'AB', 
+                    tooltip: 'At Bats'
+                },
+                {
+                    label: 'R', 
+                    tooltip: 'Runs'
+                },
+                {
+                    label: 'H', 
+                    tooltip: 'Hits'
+                },
+                {
+                    label: 'TB', 
+                    tooltip: 'Total Bases'
+                },
+                {
+                    label: 'RBI', 
+                    tooltip: 'Runs Batted In'
+                },
+                {
+                    label: 'HR', 
+                    tooltip: 'Homeruns'
+                },
+                {
+                    label: 'BB', 
+                    tooltip: 'Walks'
+                },
+                {
+                    label: 'SO', 
+                    tooltip: 'Strikeouts'
+                },
+                {
+                    label: 'LOB', 
+                    tooltip: 'Runners Left On Base'
+                },
+                {
+                    label: 'E', 
+                    tooltip: 'Errors'
+                }
+            ];
+
             boxScore.teamBattingCategories = [
                 {
                     label: 'DOUBLES',
@@ -250,7 +295,35 @@ module.exports = function(module){
                 }
             ];
 
-            boxScore.pitchingCategories = [' ', 'IP', 'H', 'R', 'BB', 'K', 'PITCHES'];
+            boxScore.pitchingCategories = [
+                {
+                    label: ' '
+                },
+                {
+                    label: 'IP',
+                    tooltip: 'Innings Pittched'
+                },
+                {
+                    label: 'H',
+                    tooltip: 'Hits Allowed'
+                },
+                {
+                    label: 'R',
+                    tooltip: 'Runs Allowed'
+                },
+                {
+                    label: 'BB',
+                    tooltip: 'Walks Allowed'
+                },
+                {
+                    label: 'K',
+                    tooltip: 'Strikeouts Thrown'
+                },
+                {
+                    label: 'PITCHES'
+                }
+            ];
+
             boxScore.pitcherGameStats = [
                 {
                     label: 'IP',
