@@ -59,7 +59,7 @@ module.exports = function(module){
 		HIT_BY_PITCH : 0.24,//% of pitches that hit batter
 		HBP_LOCATIONS : ['HI', 'MIU', 'MIM', 'MID', 'LI'],
 		MAX_QUAL_FOR_HBP_CHECK : 100,
-		MIN_QUAL_FOR_HBP_CHECK : 0,
+		MIN_QUAL_FOR_HBP_CHECK : 30,
 		QUAL_HBP_MULTIPLIER : 0.04,
 
 		PERFORMANCE_WEIGHT : {
@@ -120,8 +120,8 @@ module.exports = function(module){
 			SUO: 'up and away',
 			SUM: (chance.bool() ? 'at the top of the zone' : 'up'),
 			SUI: 'up inside',
-			SCO: (chance.bool() ? 'a bit outside' : 'outside'),
-			SCI: (chance.bool() ? 'inside' : 'a bit inside'),
+			SCO: (chance.bool() ? 'a bit outside' : 'away'),
+			SCI: (chance.bool() ? 'in' : 'a bit inside'),
 			SDO: 'low and away',
 			SDM: (chance.bool() ? 'down' : 'at the bottom of the zone'),
 			SDI: 'down inside'

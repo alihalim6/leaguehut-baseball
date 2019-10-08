@@ -477,7 +477,7 @@ module.exports = function(module){
 		function generatePitcherChangePlayCall(___, pitcherChange, defense){
 			var inningsPitched = pitcherChange.takenOut.inningsPitched;
 			var wholeInningsPitched = Math.floor(inningsPitched);
-			var partialInningsPitched = inningsPitched.toString().substring(1);
+			var partialInningsPitched = (inningsPitched % 1) ? inningsPitched.toString().substring(1) : '.0';
 			var inningWord = ((wholeInningsPitched > 1) ? ' innings' : ' inning');
 
 			var pitcherChangeCallOne = ___.bool() ?

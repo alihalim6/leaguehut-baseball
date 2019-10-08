@@ -219,7 +219,7 @@ module.exports = function(module){
 			//game over if:
 			//it is now bottom of 9th or extra inning and home team (who would be batting in BOT 9) does not need to bat (they're winning)
 			//OR it is now top of extra inning and game is not tied (home team won with walk-off or failed to win in bottom of previous inning)
-			if(((inningCount >= 9.5) && ((inningCount % 1) > 0) && (homeTeamRuns > awayTeamRuns))
+			if(((inningCount >= 9.5) && (inningCount % 1) && (homeTeamRuns > awayTeamRuns))
 				|| ((inningCount >= 10) && ((inningCount % 1) === 0) && (homeTeamRuns !== awayTeamRuns))){
 				gameOver = true;
 			}

@@ -301,7 +301,7 @@ module.exports = function(module){
                 },
                 {
                     label: 'IP',
-                    tooltip: 'Innings Pittched'
+                    tooltip: 'Innings Pitched'
                 },
                 {
                     label: 'H',
@@ -313,7 +313,7 @@ module.exports = function(module){
                 },
                 {
                     label: 'BB',
-                    tooltip: 'Walks Allowed'
+                    tooltip: 'Batters Walked'
                 },
                 {
                     label: 'K',
