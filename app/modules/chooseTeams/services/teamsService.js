@@ -393,7 +393,7 @@ module.exports = function(module){
                     id: appConstants.STATS_DISPLAY.BATTERS_FACED
                 },
                 {
-                    label: 'FIRST PITCH STRIKES',
+                    label: 'FIRST-PITCH STRIKES',
                     id: appConstants.STATS_DISPLAY.FIRST_PITCH_STRIKES
                 }
             ];

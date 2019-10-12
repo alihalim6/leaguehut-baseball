@@ -15,13 +15,13 @@ module.exports = function(module){
 					//set player's list of skills to display in his player info modal
 					if(player.infield){
 						var infieldSkillsList = (player.position === appConstants.GAME_PLAY.POSITIONS.PITCHER) ? appConstants.PLAYER_SKILLS_DISPLAY.PITCHERS : appConstants.PLAYER_SKILLS_DISPLAY.INFIELD;
-						player.skillsList.push.apply(player.skillsList, infieldSkillsList);
+						player.skillsList = _.concat(player.skillsList, infieldSkillsList);
 					}
 					else{
-						player.skillsList.push.apply(player.skillsList, appConstants.PLAYER_SKILLS_DISPLAY.OUTFIELD);
+						player.skillsList = _.concat(player.skillsList, appConstants.PLAYER_SKILLS_DISPLAY.OUTFIELD);
 					}
 
-					player.skillsList.push.apply(player.skillsList, appConstants.PLAYER_SKILLS_DISPLAY.GENERAL);
+					player.skillsList = _.concat(player.skillsList, appConstants.PLAYER_SKILLS_DISPLAY.GENERAL);
 				
 					if(player.position === appConstants.GAME_PLAY.POSITIONS.PITCHER){
 						if(player.depthPosition === 1) player.isStartingPitcher = true;

@@ -42,7 +42,8 @@ module.exports = function(module){
 				'Fastball',
 				'Slider',
 				'Curveball',
-				'Changeup'
+				'Changeup',
+				'Run Speed'
 			]
 		},
 
