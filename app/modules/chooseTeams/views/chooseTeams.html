@@ -10,7 +10,7 @@
 </game-play>
 
 <!-- CHOOSE TEAMS PAGE; HIDDEN WHEN GAME IS IN PROGRESS -->
-<div ng-if="!gameInProgress">
+<div ng-if="!gameInProgress" class="choose-teams-container">
 	<player-info-modal class="player-info-modal-container" id="playerInfoChooseTeams"></player-info-modal>
 
 	<!-- WELCOME -->
@@ -64,8 +64,9 @@
 				
 				<img ng-src="{{'img/team_cap_' + team.id + '.png'}}" class="choose-teams-player-cap">
 				<svg-icon svg-url="'player_head_' + {{player.id}}" class="choose-teams-player-headshot"></svg-icon>
-				<div class="choose-teams-player-name secondary-color-background-{{team.id}}">{{player.fullName}}</div>
-				<div class="player-position">{{player.position}}</div>
+				<div class="choose-teams-player-name secondary-color-background-{{team.id}}">{{::player.fullName}}</div>
+				<div ng-if="player.isPitcher" class="player-position">{{::player.handedness}}HP</div>
+				<div ng-if="!player.isPitcher" class="player-position">{{::player.position}}</div>
 	 
 	 			<!-- PLAYER'S OVERALL RATING -->
 				<div class="player-rating-container">
