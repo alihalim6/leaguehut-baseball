@@ -1,4 +1,5 @@
 @app-border-radius: 5px;
+@app-width: 850px;
 
 
 
@@ -257,17 +258,17 @@
 
 .tooltip-text {
 	font-size: 9px;
-  	visibility: hidden;
-  	width: auto;
-  	background-color: #ffffff;
-  	color: #444444;
-  	text-align: center;
-  	padding: 5px;
-  	border-radius: @app-border-radius;
-  	border: 2px solid #444444;	 
-  	position: absolute;
-  	top: 34px;
-  	z-index: 1;
+	visibility: hidden;
+	width: auto;
+	background-color: #ffffff;
+	color: #444444;
+	text-align: center;
+	padding: 5px;
+	border-radius: @app-border-radius;
+	border: 2px solid #444444;	 
+	position: absolute;
+	top: 34px;
+	z-index: 1;
 }
 
 .low-tooltip-text {
@@ -285,7 +286,7 @@
 .chosen-teams {
 	position: absolute;
 	top: 87px;
-	width: 100%;
+	width: @app-width;
 	text-align: center;
 
 	.chosen-teams-x-icon {
@@ -304,10 +305,11 @@
 }
 
 .divider-line {
-	width: 100%;
-    border-bottom: 1px solid #cccccc;
-    position: absolute;
-    top: 58px;
+	width: 200vw;
+  border-bottom: 1px solid #cccccc;
+  position: absolute;
+  top: 58px;
+  left: -1000px;
 }
 
 .player-rating-info-icon {
@@ -336,9 +338,9 @@
 	position: absolute;
 	left: 53%;
 	font-size: 33px !important;
-    display: inline;
-    letter-spacing: normal !important;
-    cursor: pointer;
+  display: inline;
+  letter-spacing: normal !important;
+  cursor: pointer;
 }
 
 .special-team-name-small {
@@ -354,15 +356,15 @@
 }
 
 .player-info-modal-container {
-	display: none;
-	position: absolute;
-	left: 0px;
+		display: none;
+		position: absolute;
+		left: 0px;
     height: 114vh;//long enough to cover the entire slide so that nothing is clickable when modal is showing
-    width: 850px;
+    width: @app-width;
     z-index: 3;
 
 	.player-info-modal {
-		font-family: sans-serif;
+			font-family: sans-serif;
 	    margin: 335px auto;
 	    position: relative;
 	    height: auto;
@@ -381,7 +383,7 @@
 	    }
 
 	    .player-headshot {
-			position: absolute;
+				position: absolute;
 		    top: -11px;
 		    left: -17px;
 		    height: 90px;
@@ -405,7 +407,7 @@
 		}
 
 	    .player-name {
-	        width: 75%;
+	      width: 75%;
 		    text-align: right;
 		    border-radius: @app-border-radius 0px @app-border-radius 0px;
 		    font-size: 14px;
@@ -475,8 +477,8 @@
 
 			    .player-rating {
 			    	font-size: 12px;
-					padding: 8px 0px 2px 42px;
-					display: inline-block;
+						padding: 8px 0px 2px 42px;
+						display: inline-block;
 			    }
 
 			    .player-rating-bar {
@@ -549,7 +551,7 @@
 
 .modal-title {
 	width: fit-content;
-    margin: 18px auto 0px;
+  margin: 18px auto 0px;
 	color: #444444;
 }
 
@@ -559,6 +561,6 @@
 
 .player-info-modal-x-icon {
 	float: right;
-    margin: 12px;
-    cursor: pointer;
+  margin: 12px;
+  cursor: pointer;
 }
