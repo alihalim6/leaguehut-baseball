@@ -266,6 +266,7 @@ module.exports = function(module){
 					this.defense = gamePlayService.getDefense();
 					this.batter = gamePlayService.getBatter();
 					this.pitcher = gamePlayService.getPitcher();
+					
 					if(!this.defense.currentPitcherScoreDeficit[this.pitcher.id]) this.defense.currentPitcherScoreDeficit[this.pitcher.id] = 0;
 
 					baseRunningService.resetResults();
