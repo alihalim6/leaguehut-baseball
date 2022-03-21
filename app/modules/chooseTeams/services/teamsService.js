@@ -118,6 +118,7 @@ module.exports = function(module){
     						//append depth position to 'P' to distinguish between starting pitchers and middle relievers/closers
     						if(currentPlayer.position === appConstants.GAME_PLAY.POSITIONS.PITCHER){
     							currentPlayer.teamPosition += currentPlayer.depthPosition;
+                                currentPlayer.isPitcher = true;
     						}
 
     						currentTeam.players[currentPlayer.teamPosition] = currentPlayer;

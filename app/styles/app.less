@@ -14,14 +14,10 @@
 	color: @team-1-primary-color;
 	text-shadow: 2px 1px @team-1-secondary-color;
 	letter-spacing: 13px !important;
-    margin-top: -19px !important;
-    margin-left: 39px;
+	margin-top: -24px !important;
 }
 .secondary-color-background-1 {
 	background-color: @team-1-secondary-color;
-}
-.team-1-box-score-name-margin {
-	margin-left: -114.5px;
 }
 
 
@@ -40,9 +36,6 @@
 .secondary-color-background-2 {
 	background-color: @team-2-secondary-color;
 }
-.team-2-box-score-name-margin {
-	margin-left: -51.5px;
-}
 
 
 
@@ -56,13 +49,9 @@
 	font-family: 'team3Font';
 	color: @team-3-primary-color;
 	text-shadow: 2px 1px @team-3-secondary-color;
-	margin-left: 12px;
 }
 .secondary-color-background-3 {
 	background-color: @team-3-secondary-color;
-}
-.team-3-box-score-name-margin {
-	margin-left: -92.5px;
 }
 
 
@@ -77,18 +66,12 @@
 	font-family: 'team4Font';
 	color: @team-4-primary-color;
 	text-shadow: 2px 1px @team-4-secondary-color;
-	margin-top: 22px !important;
-	margin-left: 12px;
 	letter-spacing: 20px !important;
+	margin-top: 8px !important;
 }
 .secondary-color-background-4 {
 	background-color: @team-4-secondary-color;
 }
-.team-4-box-score-name-margin {
-	margin-left: -78.5px;
-}
-
-
 
 
 @team-5-primary-color: #ff0000;
@@ -103,14 +86,9 @@
 	color: @team-5-primary-color;
 	text-shadow: 2px 1px @team-5-secondary-color;
 	letter-spacing: 23px !important;
-	margin-left: 48px;
-	margin-top: 6px !important;
 }
 .secondary-color-background-5 {
 	background-color: @team-5-secondary-color;
-}
-.team-5-box-score-name-margin {
-	margin-left: -75.5px;
 }
 
 
@@ -125,14 +103,9 @@
 	font-family: 'team6Font';
 	color: @team-6-primary-color;
 	text-shadow: 2px 1px @team-6-secondary-color;
-	margin-top: 14px !important;
-	margin-left: 17px;
 }
 .secondary-color-background-6 {
 	background-color: @team-6-secondary-color;
-}
-.team-6-box-score-name-margin {
-	margin-left: -97px;
 }
 
 
@@ -148,13 +121,10 @@
 	color: @team-7-primary-color;
 	text-shadow: 2px 1px @team-7-secondary-color;
 	font-size: 77px !important;
-	margin-top: 1px !important;
+	margin-top: -15px !important;
 }
 .secondary-color-background-7 {
 	background-color: @team-7-secondary-color;
-}
-.team-7-box-score-name-margin {
-	margin-left: -70.5px;
 }
 
 
@@ -170,14 +140,9 @@
 	color: @team-8-primary-color;
 	text-shadow: 2px 1px @team-8-secondary-color;
 	font-size: 128px !important;
-	margin-left: 28px;
-	margin-top: 6px !important;
 }
 .secondary-color-background-8 {
 	background-color: @team-8-secondary-color;
-}
-.team-8-box-score-name-margin {
-	margin-left: -76.5px;
 }
 
 
@@ -192,13 +157,9 @@
 	font-family: 'team9Font';
 	color: @team-9-primary-color;
 	text-shadow: 2px 1px @team-9-secondary-color;
-	margin-left: 21px;
 }
 .secondary-color-background-9 {
 	background-color: @team-9-secondary-color;
-}
-.team-9-box-score-name-margin {
-	margin-left: -72px;
 }
 
 
@@ -218,9 +179,6 @@
 }
 .secondary-color-background-10 {
 	background-color: @team-10-secondary-color;
-}
-.team-10-box-score-name-margin {
-	margin-left: -171px;
 }
 
 
@@ -280,7 +238,7 @@
 
 .chosen-teams {
 	position: absolute;
-	top: 72px;
+	top: 238px;
 	width: @app-width;
 	text-align: center;
 
@@ -329,12 +287,13 @@
 }
 
 .box-score-team-name {
-	position: absolute;
-	left: 53%;
+	display: flex;
+	justify-content: center;
+	align-items: center;
 	font-size: 33px !important;
-  display: inline;
-  letter-spacing: normal !important;
-  cursor: pointer;
+	display: inline;
+	letter-spacing: normal !important;
+	cursor: pointer;
 }
 
 .special-team-name-small {
@@ -556,4 +515,43 @@
 	float: right;
   margin: 12px;
   cursor: pointer;
+}
+
+.rotate-180 {
+	transform: rotate(180deg);
+}
+
+.logo-container {
+	position: relative;
+    top: 36px;
+    left: 26px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly;
+    align-items: center;
+    height: 160px;
+    width: 305px;
+    overflow: hidden;
+	margin: 0 auto;
+
+	.baseball-seams {
+		width: 73%;
+		height: 50px;
+		border-radius: 100%;
+		border: 3px dashed red;
+		position: absolute;
+		top: 137px;
+	}
+
+	.top-seams {
+		top: -32px;
+	}
+
+	.logo-label {
+		font-size: 22px;
+		font-family: sans-serif;
+		font-weight: 600;
+		letter-spacing: 2px;
+		text-align: center;
+	}
 }

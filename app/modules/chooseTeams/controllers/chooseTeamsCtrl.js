@@ -115,6 +115,7 @@ module.exports = function(module){
 				playerName: player.fullName,
 				position: player.position,
 				skillsList: player.skillsList,
+				handedness: player.handedness,
 				isPitcher: (player.position === appConstants.GAME_PLAY.POSITIONS.PITCHER),
 				fastballPercentage: fastballPercentage,
 				sliderPercentage: sliderPercentage,

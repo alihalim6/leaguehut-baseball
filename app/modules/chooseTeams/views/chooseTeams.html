@@ -10,6 +10,12 @@
 </game-play>
 
 <!-- CHOOSE TEAMS PAGE; HIDDEN WHEN GAME IS IN PROGRESS -->
+<div ng-if="!gameInProgress" class="logo-container">
+	<div class="baseball-seams top-seams"></div>
+	<span class="logo-label">LEAGUEHUT BASEBALL</span>
+	<div class="baseball-seams"></div>
+</div>
+
 <div ng-if="!gameInProgress" class="choose-teams-container">
 	<player-info-modal class="player-info-modal-container" id="playerInfoChooseTeams"></player-info-modal>
 

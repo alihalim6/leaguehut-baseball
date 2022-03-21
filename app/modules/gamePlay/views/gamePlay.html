@@ -209,7 +209,7 @@
 	<!-- PLAYER BOX SCORES -->
 	<div class="auto-overflow">
 		<div ng-repeat="team in $ctrl.gameTeams" class="player-box-scores" ng-class="{'right-team': !$first}">
-			<div class="team-{{team.id}}-font box-score-team-name team-{{team.id}}-box-score-name-margin" ng-click="$ctrl.showTeamStatsModal()"
+			<div class="team-{{team.id}}-font box-score-team-name" ng-click="$ctrl.showTeamStatsModal()"
 				ng-class="{'special-team-name-small': (team.id === 8), 'special-team-name-no-margin-top': (team.id === 7), 'special-team-name-high-margin-top': (team.id === 1)}">
 		 		{{::team.name}}
 		 	</div>

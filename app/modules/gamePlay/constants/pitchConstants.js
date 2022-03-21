@@ -111,8 +111,8 @@ module.exports = function(module){
 			H: 'high',
 			HA: 'high and away',
 			HI: 'high inside',
-			LI: 'low inside',
-			LA: 'low and away'
+			LI: (chance.bool() ? 'low off the plate inside' : 'low inside'),
+			LA: (chance.bool() ? 'low and away' : 'low and away off the plate')
 		},
 
 		IN_ZONE_PLAY_CALL_LOCATIONS : {
@@ -122,7 +122,7 @@ module.exports = function(module){
 			SUI: 'up inside',
 			SCO: (chance.bool() ? 'a bit outside' : 'away'),
 			SCI: (chance.bool() ? 'in' : 'a bit inside'),
-			SDO: 'low and away',
+			SDO: (chance.bool() ? 'down and away' : 'low and away'),
 			SDM: (chance.bool() ? 'down' : 'at the bottom of the zone'),
 			SDI: 'down inside'
 		},
